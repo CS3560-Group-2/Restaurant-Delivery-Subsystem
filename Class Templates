@@ -1,7 +1,6 @@
 class Address:
     # constructor
-    def __init__(self, accountID: int, streetNumber: int, streetName: str, city: str, postal_code: int):
-        self.accountID = accountID
+    def __init__(self, streetNumber: int, streetName: str, city: str, postal_code: int):
         self.streetNumber = streetNumber
         self.streetName = streetName
         self.city = city
