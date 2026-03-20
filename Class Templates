@@ -1,0 +1,60 @@
+class Address:
+    # constructor
+    def __init__(self, accountID: int, streetNumber: int, streetName: str, city: str, postal_code: int):
+        self.accountID = accountID
+        self.streetNumber = streetNumber
+        self.streetName = streetName
+        self.city = city
+        self.postal_code = postal_code
+
+    # class methods
+
+
+class Customer:
+    # constructor
+    def __init__(self, accountID: int, address: Address, name: str, creditCard: int):
+        self.accountID = accountID
+        self.address = address
+        self.name = name
+        self.creditCard = creditCard
+
+    # class methods
+
+
+class Restaurant:
+    # constructor
+    def __init__(self, accountID: int, address: Address, name: str):
+        self.accountID = accountID
+        self.address = address
+        self.name = name
+
+    # class methods
+
+
+class Driver:
+    # constructor
+    def __init__(self, accountID: int, licensePlate: str, name: str, location: Address, status: str = "available"):
+        self.accountID = accountID
+        self.licensePlate = licensePlate
+        self.name = name
+        self.location = location
+        self.staus = status
+
+    # class methods
+
+
+class Order:
+    # constructor
+    def __init__(self, orderID: int, customer: Customer, restaurant: Restaurant, driver: Driver):
+        self.orderID = orderID
+        self.status = "assigned"
+        self.customer = customer
+        self.restaurant = restaurant
+        self.driver = driver
+
+    # class methods
+
+
+
+class System:
+    # whatever methods that don't go in other classes
