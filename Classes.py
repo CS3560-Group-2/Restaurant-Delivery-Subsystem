@@ -12,11 +12,26 @@ class User:
     # indicates whether account is active
     self.active = True
 
+    # indicates whether account is logged in
+    self.logged_in = False
+
 def sign_up(self) -> bool:
   """
   simulates account registration
   """
   return True
+
+def sign_in(self) -> None:
+  """
+  simulates user logging in
+  """
+  self.logged_in = True
+
+def sign_out(self) -> None:
+  """
+  simulates user logging out
+  """
+  self.logged_in = False
 
 def delete_account(self) -> None:
   """
@@ -83,7 +98,7 @@ class Driver(User):
         super().__init__(accountID, name)
 
         # vehicle identifier
-        self.licensePlate = licensePlate
+        self.license_plate = licensePlate
 
         # current geographic location of the driver
         self.location = location
