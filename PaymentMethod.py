@@ -4,7 +4,10 @@ class PaymentMethod:
   allows for multiple payment options per customer
   """
 
-  def __init__(card_number: str, card_type: str):
+  def __init__(self, payment_id: int, card_number: str, card_type: str):
+    # identifier for payment method
+    self.payment_id = payment_id
+    
     # card number is stored as string to avoid potential indexing issues
     self.card_number = card_number
 
