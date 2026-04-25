@@ -9,4 +9,4 @@ class RestaurantSignInPage(ttk.Frame):
         ttk.Label(self, text = "Username ").grid(column=0, row=3, padx=10, pady=5)
         ttk.Entry(self).grid(column=1, row=3, padx=10, pady=5)
         ttk.Button(self, text = "Back", command=lambda: controller.show_frame("HomePage")).grid(column=0, row=5, padx=10, pady=10)
-        ttk.Button(self, text = "Sign in", command=lambda: controller.show_frame("RestaurantHomePage")).grid(column=1, row=5, padx=10, pady=10)
+        ttk.Button(self, text = "Sign in", command=lambda: controller.show_frame("RestaurantDashboardPage")).grid(column=1, row=5, padx=10, pady=10)
