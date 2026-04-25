@@ -1,4 +1,15 @@
 from typing import Optional, List
+import mysql.connector
+
+# database connection setup
+con = mysql.connector.connect(
+  user = 'root',
+  host = 'localhost',
+  database = 'food_delivery' # placeholder name
+  passwd = 'password' # placeholder password
+)
+
+cur = con.cursor()
 
 class User:
   """super class representing a generic system user"""
@@ -15,7 +26,7 @@ class User:
     # indicates whether account is logged in
     self.logged_in = False
 
-def sign_up(self) -> bool:
+def sign_up(self, user_type: str) -> bool:
   """
   simulates account registration
   """
