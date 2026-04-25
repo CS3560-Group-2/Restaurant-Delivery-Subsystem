@@ -194,3 +194,93 @@ class PaymentMethod:
 
     # card can be either credit or debit
     self.card_type = card_type
+
+class Order:
+    """
+    represents a customer's order in the delivery system
+    handles item management, pricing, and status transitions
+    """
+
+    def __init__(self, order_id: int, customer: Customer, restaurant: Restaurant):
+        self.order_id = order_id
+        self.customer = customer
+        self.restaurant = restaurant
+
+        # list of items in the order
+        self.items: List[MenuItem] = []
+
+        # current order status (placed, preparing, ready, delivering, delivered, cancelled)
+        self.status = "placed"
+
+        # assigned driver
+        self.driver: Optional[Driver] = None
+
+        # delivery instructions from customer
+        self.delivery_instructions = ""
+
+        # total price of order
+        self.total_price = 0.0
+
+    def add_item(self, item: MenuItem) -> None:
+        """
+        adds an item to the order and updates total price
+        """
+        self.items.append(item)
+        self.total_price += item.price
+
+    def remove_item(self, item_id: int) -> bool:
+        """
+        removes an item from the order by ID
+        updates total price accordingly
+        """
+        for item in self.items:
+            if item.item_id == item_id:
+                self.items.remove(item)
+                self.total_price -= item.price
+                return True
+        return False
+
+    def calculate_total(self) -> float:
+        """
+        recalculates total price (useful for validation)
+        """
+        self.total_price = sum(item.price for item in self.items)
+        return self.total_price
+
+    def assign_driver(self, driver: Driver) -> bool:
+        """
+        assigns a driver if order is ready
+        """
+        if self.status == "ready" and driver.status == "available":
+            self.driver = driver
+            driver.assign_order(self)
+            self.status = "delivering"
+            return True
+        return False
+
+    def update_status(self, new_status: str) -> bool:
+        """
+        safely updates order status with simple validation
+        """
+        valid_transitions = {
+            "placed": ["preparing", "cancelled"],
+            "preparing": ["ready", "cancelled"],
+            "ready": ["delivering"],
+            "delivering": ["delivered"],
+            "delivered": [],
+            "cancelled": []
+        }
+
+        if new_status in valid_transitions[self.status]:
+            self.status = new_status
+            return True
+        return False
+
+    def cancel_order(self) -> bool:
+        """
+        cancels the order if it hasn't been delivered
+        """
+        if self.status in ["placed", "preparing"]:
+            self.status = "cancelled"
+            return True
+        return False
