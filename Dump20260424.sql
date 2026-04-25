@@ -30,7 +30,7 @@ CREATE TABLE `address` (
   `ZIP` int DEFAULT NULL,
   `Country` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`AddressID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,31 +42,30 @@ DROP TABLE IF EXISTS `customers`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customers` (
   `CustomerID` int NOT NULL AUTO_INCREMENT,
-  `PaymentMethod` varchar(45) DEFAULT NULL,
   `Address` int DEFAULT NULL,
   PRIMARY KEY (`CustomerID`),
   KEY `Address_idx` (`Address`),
   CONSTRAINT `AddressCustomer` FOREIGN KEY (`Address`) REFERENCES `address` (`AddressID`),
   CONSTRAINT `UserIDCustomer` FOREIGN KEY (`CustomerID`) REFERENCES `users` (`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `drviers`
+-- Table structure for table `drivers`
 --
 
-DROP TABLE IF EXISTS `drviers`;
+DROP TABLE IF EXISTS `drivers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `drviers` (
+CREATE TABLE `drivers` (
   `DriverID` int NOT NULL AUTO_INCREMENT,
-  `LicensePlate` int DEFAULT NULL,
+  `LicensePlate` varchar(7) DEFAULT NULL,
   `Location` int DEFAULT NULL,
   `Status` varchar(45) DEFAULT NULL,
   `Rating` int DEFAULT NULL,
   PRIMARY KEY (`DriverID`),
   CONSTRAINT `UserIDDriver` FOREIGN KEY (`DriverID`) REFERENCES `users` (`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -78,10 +77,12 @@ DROP TABLE IF EXISTS `location`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `location` (
   `LocationID` int NOT NULL AUTO_INCREMENT,
+  `Driver` int DEFAULT NULL,
   `Longitude` float DEFAULT NULL,
   `Latitude` float DEFAULT NULL,
   PRIMARY KEY (`LocationID`),
-  CONSTRAINT `DriverLocation` FOREIGN KEY (`LocationID`) REFERENCES `drviers` (`DriverID`)
+  KEY `DriverLocation_idx` (`Driver`),
+  CONSTRAINT `DriverLocation` FOREIGN KEY (`Driver`) REFERENCES `drivers` (`DriverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -99,7 +100,7 @@ CREATE TABLE `menuitem` (
   `Name` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`MenuItemID`),
   KEY `Menu_idx` (`Restaurant`),
-  CONSTRAINT `RestaurantMenuItem` FOREIGN KEY (`Restaurant`) REFERENCES `restaurants` (`RestaurantsID`)
+  CONSTRAINT `RestaurantMenuItem` FOREIGN KEY (`Restaurant`) REFERENCES `restaurants` (`RestaurantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -141,8 +142,8 @@ CREATE TABLE `orders` (
   KEY `Driver_idx` (`Driver`),
   KEY `Restaurant_idx` (`Restaurant`),
   CONSTRAINT `Customer` FOREIGN KEY (`Customer`) REFERENCES `customers` (`CustomerID`),
-  CONSTRAINT `Driver` FOREIGN KEY (`Driver`) REFERENCES `drviers` (`DriverID`),
-  CONSTRAINT `Restaurant` FOREIGN KEY (`Restaurant`) REFERENCES `restaurants` (`RestaurantsID`)
+  CONSTRAINT `Driver` FOREIGN KEY (`Driver`) REFERENCES `drivers` (`DriverID`),
+  CONSTRAINT `Restaurant` FOREIGN KEY (`Restaurant`) REFERENCES `restaurants` (`RestaurantID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -154,10 +155,12 @@ DROP TABLE IF EXISTS `paymentmethod`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `paymentmethod` (
-  `Customer` int NOT NULL AUTO_INCREMENT,
+  `PaymentMethodID` varchar(45) NOT NULL,
+  `Customer` int DEFAULT NULL,
   `CardNumber` int DEFAULT NULL,
   `Type` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`Customer`),
+  PRIMARY KEY (`PaymentMethodID`),
+  KEY `CustomerID` (`Customer`),
   CONSTRAINT `CustomerID` FOREIGN KEY (`Customer`) REFERENCES `customers` (`CustomerID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -170,13 +173,13 @@ DROP TABLE IF EXISTS `restaurants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `restaurants` (
-  `RestaurantsID` int NOT NULL AUTO_INCREMENT,
+  `RestaurantID` int NOT NULL AUTO_INCREMENT,
   `Address` int DEFAULT NULL,
-  PRIMARY KEY (`RestaurantsID`),
+  PRIMARY KEY (`RestaurantID`),
   KEY `Address_idx` (`Address`),
   CONSTRAINT `AddressRestaurant` FOREIGN KEY (`Address`) REFERENCES `address` (`AddressID`),
-  CONSTRAINT `UserIDRestaurant` FOREIGN KEY (`RestaurantsID`) REFERENCES `users` (`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  CONSTRAINT `UserIDRestaurant` FOREIGN KEY (`RestaurantID`) REFERENCES `users` (`UserID`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -198,7 +201,7 @@ CREATE TABLE `reviews` (
   KEY `Customer_idx` (`Customer`),
   KEY `Driver_idx` (`Driver`),
   CONSTRAINT `CustomerReview` FOREIGN KEY (`Customer`) REFERENCES `customers` (`CustomerID`),
-  CONSTRAINT `DriverReview` FOREIGN KEY (`Driver`) REFERENCES `drviers` (`DriverID`),
+  CONSTRAINT `DriverReview` FOREIGN KEY (`Driver`) REFERENCES `drivers` (`DriverID`),
   CONSTRAINT `OrderReview` FOREIGN KEY (`Order`) REFERENCES `orders` (`OrderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -216,7 +219,7 @@ CREATE TABLE `users` (
   `Name` varchar(45) DEFAULT NULL,
   `Username` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`UserID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -228,4 +231,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-24  7:29:58
+-- Dump completed on 2026-04-24 17:19:11
