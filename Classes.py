@@ -71,7 +71,7 @@ class Restaurant(User):
     removes a menu item based on item ID
     returns true if removal is successful
     """
-    for item in self.menu
+    for item in self.menu:
       if item.item_id == item_id:
         self.menu.remove(item)
         return True
@@ -84,7 +84,7 @@ class Restaurant(User):
     signals that it can be picked up by driver
     """
     if order.status == "preparing":
-      order.status = "ready
+      order.status = "ready"
       return True
     return False
 
@@ -115,7 +115,7 @@ class Driver(User):
         updates driver state
         """
         if self.status == "available":
-            self.current_oder = order
+            self.current_order = order
             self.status = "assigned"
         return False
 
@@ -284,3 +284,86 @@ class Order:
             self.status = "cancelled"
             return True
         return False
+  
+    class Address:
+    """
+    represents a physical address used for delivery and location tracking
+    now supports international addresses via country field
+    """
+
+    def __init__(self, street: str, city: str, state: str, zip_code: str, country: str, unit: str = ""):
+        self.street = street
+        self.city = city
+        self.state = state
+        self.zip_code = zip_code
+        self.country = country
+        self.unit = unit  # apartment, suite, etc.
+
+    def __str__(self) -> str:
+        """
+        returns formatted address string
+        adjusts formatting depending on available fields
+        """
+        parts = [self.street]
+
+        if self.unit:
+            parts.append(self.unit)
+
+        parts.append(self.city)
+
+        if self.state:
+            parts.append(self.state)
+
+        if self.zip_code:
+            parts.append(self.zip_code)
+
+        parts.append(self.country)
+
+        return ", ".join(parts)
+
+    def update_address(self, street: str = None, city: str = None,
+                       state: str = None, zip_code: str = None,
+                       country: str = None, unit: str = None) -> None:
+        """
+        updates parts of the address
+        """
+        if street:
+            self.street = street
+        if city:
+            self.city = city
+        if state:
+            self.state = state
+        if zip_code:
+            self.zip_code = zip_code
+        if country:
+            self.country = country
+        if unit is not None:
+            self.unit = unit
+
+    def is_same_city(self, other_address) -> bool:
+        """
+        checks if another address is in the same city AND country
+        """
+        return (
+            self.city.lower() == other_address.city.lower() and
+            self.country.lower() == other_address.country.lower()
+        )
+
+    def is_same_country(self, other_address) -> bool:
+        """
+        checks if two addresses are in the same country
+        """
+        return self.country.lower() == other_address.country.lower()
+
+    def distance_to(self, other_address) -> float:
+        """
+        placeholder method for distance calculation
+        (in real systems, this would use GPS coordinates or an API)
+        """
+        if self.country != other_address.country:
+            return float("inf")  # unrealistic to deliver internationally
+
+        if self.zip_code == other_address.zip_code:
+            return 1.0
+
+        return 5.0
