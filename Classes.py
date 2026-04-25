@@ -285,7 +285,7 @@ class Order:
             return True
         return False
   
-    class Address:
+  class Address:
     """
     represents a physical address used for delivery and location tracking
     now supports international addresses via country field
