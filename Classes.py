@@ -26,7 +26,7 @@ class User:
     # indicates whether account is logged in
     self.logged_in = False
 
-def sign_up(self, user_type: str) -> bool:
+def sign_up(self) -> bool:
   """
   simulates account registration
   """
