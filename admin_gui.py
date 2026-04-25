@@ -1,21 +1,32 @@
 # Restaurant Delivery System - Admin GUI
 # Author: Hoai Nam
-# This GUI allows an admin to register drivers, deactivate drivers,
-# view overdue delivery tickets, and update ticket status.
+# Admin GUI connected to MySQL database.
 
 import tkinter as tk
 from tkinter import messagebox, ttk, simpledialog
 import mysql.connector
-from db_config import DB_CONFIG
+
+
+# ====== CHANGE THESE FOR YOUR LOCAL MYSQL ======
+DB_HOST = "localhost"
+DB_USER = "root"
+DB_PASSWORD = "YOUR_PASSWORD"
+DB_NAME = "YumRush"  # change to restaurant_delivery if your DB uses that name
+# ===============================================
 
 
 def get_db_connection():
     """Create and return a MySQL database connection."""
-    return mysql.connector.connect(**DB_CONFIG)
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        passwd=DB_PASSWORD,
+        database=DB_NAME
+    )
 
 
 def test_connection():
-    """Test database connection when the program starts."""
+    """Test MySQL connection when the program starts."""
     try:
         conn = get_db_connection()
         print("Connected to MySQL successfully!")
@@ -25,7 +36,7 @@ def test_connection():
 
 
 class AdminGUI:
-    """Main Admin GUI for the Restaurant Delivery System."""
+    """Admin GUI for driver management and overdue ticket handling."""
 
     def __init__(self, root):
         self.root = root
@@ -44,7 +55,7 @@ class AdminGUI:
             widget.destroy()
 
     def header(self):
-        """Display common page header."""
+        """Show common header."""
         tk.Label(
             self.root,
             text="Restaurant Delivery System",
@@ -54,7 +65,7 @@ class AdminGUI:
         ).pack(fill="x")
 
     def show_dashboard(self):
-        """Display admin dashboard."""
+        """Show admin dashboard."""
         self.clear_window()
         self.header()
 
@@ -89,7 +100,7 @@ class AdminGUI:
         ).pack(pady=12)
 
     def show_register_driver(self):
-        """Display driver registration form."""
+        """Show register driver form."""
         self.clear_window()
         self.header()
 
@@ -147,7 +158,7 @@ class AdminGUI:
         ).grid(row=0, column=1, padx=15)
 
     def register_driver(self):
-        """Insert a new driver into User and Driver tables."""
+        """Insert new driver into database."""
         name = self.entries["Driver Name"].get().strip()
         phone = self.entries["Phone Number"].get().strip()
         email = self.entries["Email"].get().strip()
@@ -160,9 +171,10 @@ class AdminGUI:
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            cursor.execute(
+            # Create a user first
+            cur.execute(
                 """
                 INSERT INTO User
                 (full_name, email, phone, password_hash, account_status)
@@ -171,9 +183,10 @@ class AdminGUI:
                 (name, email, phone, "default123", "Active")
             )
 
-            new_user_id = cursor.lastrowid
+            new_user_id = cur.lastrowid
 
-            cursor.execute(
+            # Create driver using same ID as user
+            cur.execute(
                 """
                 INSERT INTO Driver
                 (driver_id, license_number, vehicle_type, availability_status)
@@ -183,12 +196,12 @@ class AdminGUI:
             )
 
             conn.commit()
-            cursor.close()
+            cur.close()
             conn.close()
 
             messagebox.showinfo(
                 "Success",
-                f"Driver profile created successfully.\nNew Driver ID: {new_user_id}"
+                f"Driver profile created successfully.\nDriver ID: {new_user_id}"
             )
 
             for entry in self.entries.values():
@@ -198,7 +211,7 @@ class AdminGUI:
             messagebox.showerror("Database Error", str(error))
 
     def deactivate_driver(self):
-        """Deactivate a driver by ID."""
+        """Deactivate driver by ID."""
         driver_id = simpledialog.askstring(
             "Deactivate Driver",
             "Enter Driver ID:"
@@ -209,9 +222,9 @@ class AdminGUI:
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE Driver
                 SET availability_status = 'Inactive'
@@ -220,7 +233,7 @@ class AdminGUI:
                 (driver_id,)
             )
 
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE User
                 SET account_status = 'Inactive'
@@ -231,7 +244,7 @@ class AdminGUI:
 
             conn.commit()
 
-            if cursor.rowcount == 0:
+            if cur.rowcount == 0:
                 messagebox.showwarning(
                     "Not Found",
                     f"No driver found with ID {driver_id}."
@@ -242,14 +255,14 @@ class AdminGUI:
                     f"Driver {driver_id} has been deactivated."
                 )
 
-            cursor.close()
+            cur.close()
             conn.close()
 
         except mysql.connector.Error as error:
             messagebox.showerror("Database Error", str(error))
 
     def show_overdue_tickets(self):
-        """Display overdue tickets screen."""
+        """Show overdue ticket table."""
         self.clear_window()
         self.header()
 
@@ -314,15 +327,15 @@ class AdminGUI:
         ).grid(row=0, column=2, padx=10)
 
     def load_overdue_tickets(self):
-        """Load overdue tickets from MySQL."""
+        """Load overdue tickets from database."""
         for row in self.ticket_table.get_children():
             self.ticket_table.delete(row)
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     ticket_id,
@@ -340,19 +353,19 @@ class AdminGUI:
                 """
             )
 
-            rows = cursor.fetchall()
+            rows = cur.fetchall()
 
             for row in rows:
                 self.ticket_table.insert("", tk.END, values=row)
 
-            cursor.close()
+            cur.close()
             conn.close()
 
         except mysql.connector.Error as error:
             messagebox.showerror("Database Error", str(error))
 
     def get_selected_ticket_id(self):
-        """Get ticket ID from selected table row."""
+        """Get selected ticket ID."""
         selected_item = self.ticket_table.selection()
 
         if not selected_item:
@@ -376,9 +389,9 @@ class AdminGUI:
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE DeliveryTicket
                 SET ticket_status = 'Closed',
@@ -390,7 +403,7 @@ class AdminGUI:
             )
 
             conn.commit()
-            cursor.close()
+            cur.close()
             conn.close()
 
             messagebox.showinfo("Success", "Ticket closed successfully.")
@@ -413,9 +426,9 @@ class AdminGUI:
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor()
+            cur = conn.cursor()
 
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE DeliveryTicket
                 SET ticket_status = 'Escalated',
@@ -426,7 +439,7 @@ class AdminGUI:
             )
 
             conn.commit()
-            cursor.close()
+            cur.close()
             conn.close()
 
             messagebox.showinfo("Success", "Ticket escalated successfully.")
