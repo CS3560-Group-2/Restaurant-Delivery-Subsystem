@@ -17,14 +17,11 @@ class Driver(User):
     handles order pickup, delivery execution, and real-life location updates
     """
     
-    def __init__(self, accountID: int, licensePlate: str, name: str, location: Address):
+    def __init__(self, accountID: int, licensePlate: str, name: str):
         super().__init__(accountID, name)
 
         # vehicle identifier
         self.license_plate = licensePlate
-
-        # current geographic location of the driver
-        self.location = location
 
         # driver availability status (available, assigned, delivering)
         self.status = "available"
@@ -38,7 +35,7 @@ class Driver(User):
        """
        super().sign_up("Driver")
 
-       cur.execute("""INSERT INTO Drivers (DriverID, LicensePlate, Location, Status) VALUES (%s, %s, %s, %s)""", (self.accountID, self.license_plate, str(self.location), self.status))
+       cur.execute("""INSERT INTO Drivers (DriverID, LicensePlate, Location, Status) VALUES (%s, %s, %s)""", (self.accountID, self.license_plate, self.status))
        con.commit()
 
        return True
@@ -55,14 +52,6 @@ class Driver(User):
             con.commit()
             return True
         return False
-
-    def update_location(self, location: Address) -> None:
-        """
-        updates driver's current location
-        """
-        self.location = location
-        cur.execute("""UPDATE Drivers SET Location = %s WHERE DriverID = %s""", (str(location), self.accountID))
-        con.commit()
     
     def complete_delivery(self) -> None:
         """
