@@ -17,13 +17,12 @@ class Address:
     now supports international addresses via country field
     """
 
-    def __init__(self, street: str, city: str, state: str, zip_code: str, country: str, unit: str = ""):
+    def __init__(self, street: str, city: str, state: str, zip_code: str, country: str):
         self.street = street
         self.city = city
         self.state = state
         self.zip_code = zip_code
         self.country = country
-        self.unit = unit  # apartment, suite, etc.
 
     def save_to_db(self) -> None:
         """
@@ -46,9 +45,6 @@ class Address:
         """
         parts = [self.street]
 
-        if self.unit:
-            parts.append(self.unit)
-
         parts.append(self.city)
 
         if self.state:
@@ -63,7 +59,7 @@ class Address:
 
     def update_address(self, street: str = None, city: str = None,
                        state: str = None, zip_code: str = None,
-                       country: str = None, unit: str = None) -> None:
+                       country: str = None) -> None:
         """
         updates parts of the address
         """
@@ -77,8 +73,6 @@ class Address:
             self.zip_code = zip_code
         if country:
             self.country = country
-        if unit is not None:
-            self.unit = unit
 
         cur.execute("""UPDATE Addresses SET Street = %s, City = %s, State = %s, ZipCode = %s, Country = %s WHERE AddressID = %s""", (
            street,
