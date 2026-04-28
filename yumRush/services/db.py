@@ -3,8 +3,8 @@ from mysql.connector import Error
 
 DB_CONFIG = {
     "host": "localhost",
-    "user": "yumrush_user",
-    "password": "change_me_now",
+    "user": "yumrush_admin",
+    "password": "admin123",
     "database": "yumrush",
 }
 
