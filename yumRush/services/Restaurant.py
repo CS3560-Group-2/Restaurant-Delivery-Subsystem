@@ -1,3 +1,6 @@
+from typing import Optional, List
+import mysql.connector
+
 # database connection setup
 con = mysql.connector.connect(
   user = 'root',
