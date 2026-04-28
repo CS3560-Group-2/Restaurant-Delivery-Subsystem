@@ -15,13 +15,13 @@ pkgs.mkShell {
     pkgs.rustc
     pkgs.cargo
     pkgs.vimPlugins.nvchad
+    pkgs.mysql84
   ];
-
+  
   shellHook = ''
     if [ ! -d .venv ]; then
       python -m venv .venv
     fi
     source .venv/bin/activate
-    echo "always remember to fuck justin over"
   '';
 }  
