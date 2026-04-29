@@ -11,7 +11,7 @@ con = mysql.connector.connect(
 
 cur = con.cursor()
 
-class User:
+class AppUser:
   """super class representing a generic system user"""
   def __init__(self, accountID: int, name: str, username: str):
     # user account identifier
@@ -34,7 +34,7 @@ class User:
     simulates account registration
     """
     cur.execute("""
-                INSERT INTO users (UserID, Type, Name, Active)) VALUES (%s, %s, %s, %s)
+                INSERT INTO users (AppUserID, Type, Name, Active)) VALUES (%s, %s, %s, %s)
                 """, (self.accountID, user_type, self.name, self.active))
     con.commit()
     return True
@@ -56,7 +56,7 @@ class User:
     deactivates account
     """
     self.active = False
-    cur.execute("""UPDATE Users SET Active = %s WHERE UserID = %s""", (False, self.accountID))
+    cur.execute("""UPDATE AppUsers SET Active = %s WHERE AppUserID = %s""", (False, self.accountID))
     con.commit()
   
   def edit_profile(self, name: Optional[str] = None) -> None:
@@ -65,5 +65,5 @@ class User:
     """
     if name:
       self.name = name
-      cur.execute("""UPDATE Users SET Name = %s WHERE UserID = %s""", (self.name, self.accountID))
+      cur.execute("""UPDATE AppUsers SET Name = %s WHERE AppUserID = %s""", (self.name, self.accountID))
       con.commit()
