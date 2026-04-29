@@ -1,5 +1,5 @@
-from tkinter import ttk
-
+from tkinter import ttk, messagebox
+from services.db import update_driver_status, update_driver_info
 
 class DriverHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -38,9 +38,16 @@ class DriverHomePage(ttk.Frame):
 
         ttk.Button(
             self,
+            text="Edit Account",
+            bootstyle="warning",
+            command=lambda: self.controller.show_frame("DriverEditAccountPage")
+        ).grid(column=0, row=6, padx=10, pady=10)
+
+        ttk.Button(
+            self,
             text="Sign out",
             command=self.sign_out
-        ).grid(column=0, row=6, padx=10, pady=10)
+        ).grid(column=1, row=6, padx=10, pady=10)
 
     def on_show(self) -> None:
         driver = self.controller.current_driver
@@ -60,15 +67,24 @@ class DriverHomePage(ttk.Frame):
         self.status_dropdown.set("Set Status")
 
     def confirm_status(self) -> None:
+        driver = self.controller.current_driver
         selected_status = self.status_dropdown.get().strip()
 
-        if not selected_status or selected_status == "Set Status":
+        if driver is None:
+            messagebox.showerror("Error", "No driver is signed in.")
             return
 
-        self.status_display.config(text=selected_status)
+        if not selected_status or selected_status == "Set Status":
+            messagebox.showerror("Error", "Please choose a status.")
+            return
 
-        if self.controller.current_driver is not None:
-            self.controller.current_driver["Status"] = selected_status
+        try:
+            update_driver_status(driver["DriverID"], selected_status)
+            driver["Status"] = selected_status
+            self.status_display.config(text=selected_status)
+            messagebox.showinfo("Success", "Status updated.")
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e)) 
 
     def sign_out(self) -> None:
         self.controller.current_driver = None

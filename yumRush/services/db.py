@@ -19,13 +19,15 @@ def initialize_database() -> None:
 
     try:
         #clears tables before creating them
-        # Drop in dependency order
-        cursor.execute("DROP TABLE IF EXISTS menu_items")
-        cursor.execute("DROP TABLE IF EXISTS menuitem")
-        cursor.execute("DROP TABLE IF EXISTS restaurants")
-        cursor.execute("DROP TABLE IF EXISTS drivers")
-        cursor.execute("DROP TABLE IF EXISTS users")
-        cursor.execute("DROP TABLE IF EXISTS address")
+        # Drop in dependency ORDER
+
+        #cursor.execute("DROP TABLE IF EXISTS menu_items")
+        #cursor.execute("DROP TABLE IF EXISTS menuitem")
+        #cursor.execute("DROP TABLE IF EXISTS restaurants")
+        #cursor.execute("DROP TABLE IF EXISTS drivers")
+        #cursor.execute("DROP TABLE IF EXISTS users")
+        #cursor.execute("DROP TABLE IF EXISTS address")
+        
 
         # Base tables first
         cursor.execute("""
