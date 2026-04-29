@@ -42,6 +42,7 @@ class DriverSignInPage(ttk.Frame):
                 messagebox.showerror("Sign In Failed", "Driver username not found.")
                 return
 
+            self.controller.current_driver = driver
             messagebox.showinfo("Success", f"Welcome back, {driver['Name']}!")
             self.controller.show_frame("DriverHomePage")
 

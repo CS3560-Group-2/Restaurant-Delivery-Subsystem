@@ -1,35 +1,40 @@
-#for loading in the different pages/frames
+# for loading in the different pages/frames
 import importlib
 import inspect
 import pkgutil
 import pages
-#tkinter setup
+
+# tkinter setup
 import tkinter as tk
 from tkinter import ttk
 
 
 class YumRushApp(tk.Tk):
-    #constructor
+    # constructor
     def __init__(self) -> None:
         super().__init__()
+
         self.title("YumRush")
         self.geometry("800x600")
 
+        # store signed-in driver info here
+        self.current_driver = None
+
         # container/Frame attribute definition
-        container = ttk.Frame(self, padding=(8,8,8,8))
+        container = ttk.Frame(self, padding=(8, 8, 8, 8))
         container.pack(fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
         self.frames: dict[str, ttk.Frame] = {}
 
-        #load the frames from /pages
+        # load the frames from /pages
         for PageClass in self.load_pages():
-          frame = PageClass(container, self)
-          self.frames[PageClass.__name__] = frame
-          frame.grid(row=0, column=0, sticky="nsew")
+            frame = PageClass(container, self)
+            self.frames[PageClass.__name__] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-        #show the home page when app os launched
+        # show the home page when app is launched
         self.show_frame("HomePage")
 
     def load_pages(self) -> list[type[ttk.Frame]]:
@@ -46,4 +51,9 @@ class YumRushApp(tk.Tk):
 
     def show_frame(self, page_name: str) -> None:
         frame = self.frames[page_name]
+
+        # let pages refresh themselves before being shown
+        if hasattr(frame, "on_show"):
+            frame.on_show()
+
         frame.tkraise()
