@@ -16,7 +16,7 @@ class OrderItem:
     represents a specific item within an order
     """
 
-    def __init__(self, order_item_id: int, menu_item: MenuItem, order_id: str):
+    def __init__(self, order_item_id: int, menu_item: MenuItem, order_id: int):
         self.order_item_id = order_item_id
         self.menu_item = menu_item
         self.order_id = order_id
