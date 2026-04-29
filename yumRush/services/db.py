@@ -342,3 +342,52 @@ def get_driver_by_username(username: str):
     finally:
         cursor.close()
         conn.close()
+
+def update_driver_info(driver_id: int, name: str, username: str, license_plate: str) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE users
+            SET Name = %s, Username = %s
+            WHERE UserID = %s AND Type = 'Driver'
+        """, (name, username, driver_id))
+
+        cursor.execute("""
+            UPDATE drivers
+            SET LicensePlate = %s
+            WHERE DriverID = %s
+        """, (license_plate, driver_id))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_driver_status(driver_id: int, status: str) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE drivers
+            SET Status = %s
+            WHERE DriverID = %s
+        """, (status, driver_id))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
