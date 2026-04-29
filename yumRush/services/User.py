@@ -13,13 +13,16 @@ cur = con.cursor()
 
 class User:
   """super class representing a generic system user"""
-  def __init__(self, accountID: int, name: str):
+  def __init__(self, accountID: int, name: str, username: str):
     # user account identifier
     self.accountID = accountID
 
-    # user display name
+    # user's actual name
     self.name = name
 
+    # user display name
+    self.username = username
+    
     # indicates whether account is active
     self.active = True
 
