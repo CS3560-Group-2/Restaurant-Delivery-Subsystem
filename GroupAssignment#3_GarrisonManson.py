@@ -2,12 +2,11 @@
 # Group Assignment #3
 # Use cases 7, 8, 9
 
+from __future__ import annotations
 
-from User import User
+from AppUser import User
 from Order import Order
 from Driver import Driver
-
-from __future__ import annotations
 
 # connect database
 import mysql.connector
@@ -103,6 +102,7 @@ class System:
     # Use Case: driver arrives at delivery address
     def driverArrivesAtLocation(self, order):
 
+        driver = order.driver
         # Update order status in database
         cur.execute("""
             UPDATE Orders
@@ -115,10 +115,16 @@ class System:
             print("Order not found.")
             return None
 
+        # Set driver back to available
+        cur.execute("""
+            UPDATE Driver
+            SET Status = 'available'
+            WHERE UserID = %s
+        """, (driver.accountID,))
+
         con.commit()
 
         order.status = "arrived"
-
-        driver = order.driver
+        driver.status = "available"
 
         return None
