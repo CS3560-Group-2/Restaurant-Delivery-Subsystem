@@ -87,5 +87,16 @@ class DriverHomePage(ttk.Frame):
             messagebox.showerror("Database Error", str(e)) 
 
     def sign_out(self) -> None:
+        selected_status = "unavailable"
+        driver = self.controller.current_driver
+
+        try:
+            update_driver_status(driver["DriverID"], selected_status)
+            driver["Status"] = selected_status
+            self.status_display.config(text=selected_status)
+            #messagebox.showinfo("Success", "Status updated.")
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e)) 
+ 
         self.controller.current_driver = None
         self.controller.show_frame("HomePage")
