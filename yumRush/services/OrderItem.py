@@ -16,16 +16,16 @@ class OrderItem:
     represents a specific item within an order
     """
 
-    def __init__(self, order_id: int, menu_item: MenuItem, quantity: int):
-        self.order_id = order_id
+    def __init__(self, order_item_id: int, menu_item: MenuItem, order_id: str):
+        self.order_item_id = order_item_id
         self.menu_item = menu_item
-        self.quantity = quantity
-
+        self.order_id = order_id
+  
     def save_to_db(self) -> None:
         """
         inserts order item into database
         """
-        cur.execute("""INSERT INTO OrderItems (OrderID, ItemID, Quantity) VALUES (%s, %s, %s)""", (self.order_id, self.menu_item.item_id, self.quantity))
+        cur.execute("""INSERT INTO OrderItems (OrderID, ItemID, Quantity) VALUES (%s, %s, %s)""", (self., self.menu_item.item_id, self.quantity))
         con.commit()
 
     def update_quantity(self, new_quantity: int) -> None:
@@ -34,14 +34,14 @@ class OrderItem:
         """
         self.quantity = new_quantity
 
-        cur.execute("""UPDATE OrderItems SET Quantity = %s WHERE OrderID = %s AND ItemID = %s""", (new_quantity, self.order_id, self.menu_item.item_id))
+        cur.execute("""UPDATE OrderItems SET Quantity = %s WHERE OrderID = %s AND ItemID = %s""", (new_quantity, self.order_item_id, self.menu_item.item_id))
         con.commit()
 
     def delete_from_db(self) -> None:
         """
         removes this item from the order
         """
-        cur.execute("""DELETE FROM OrderItems WHERE OrderID = %s AND ItemID = %s""", (self.order_id, self.menu_item.item_id))
+        cur.execute("""DELETE FROM OrderItems WHERE OrderID = %s AND ItemID = %s""", (self., self.menu_item.item_id))
         con.commit()
 
     def get_total_price(self) -> float:
