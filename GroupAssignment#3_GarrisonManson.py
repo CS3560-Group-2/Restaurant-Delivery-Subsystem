@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from AppUser import User
+from AppUser import AppUser
 from Order import Order
 from Driver import Driver
 
