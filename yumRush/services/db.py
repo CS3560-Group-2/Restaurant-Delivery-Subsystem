@@ -17,131 +17,299 @@ def initialize_database() -> None:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS restaurants (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            username VARCHAR(255) NOT NULL UNIQUE,
-            address VARCHAR(255) NOT NULL
-        )
-    """)
+    try:
+        #clears tables before creating them
+        # Drop in dependency order
+        cursor.execute("DROP TABLE IF EXISTS menu_items")
+        cursor.execute("DROP TABLE IF EXISTS menuitem")
+        cursor.execute("DROP TABLE IF EXISTS restaurants")
+        cursor.execute("DROP TABLE IF EXISTS drivers")
+        cursor.execute("DROP TABLE IF EXISTS users")
+        cursor.execute("DROP TABLE IF EXISTS address")
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS menu_items (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            restaurant_id INT NOT NULL,
-            item_name VARCHAR(255) NOT NULL,
-            price DECIMAL(10,2) NOT NULL,
-            FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
-                ON DELETE CASCADE
-        )
-    """)
+        # Base tables first
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS address (
+                AddressID INT NOT NULL AUTO_INCREMENT,
+                Street VARCHAR(45) DEFAULT NULL,
+                City VARCHAR(45) DEFAULT NULL,
+                State VARCHAR(45) DEFAULT NULL,
+                ZIP INT DEFAULT NULL,
+                Country VARCHAR(45) DEFAULT NULL,
+                PRIMARY KEY (AddressID)
+            )
+        """)
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                UserID INT NOT NULL AUTO_INCREMENT,
+                Type VARCHAR(15) DEFAULT NULL,
+                Name VARCHAR(45) DEFAULT NULL,
+                Username VARCHAR(45) DEFAULT NULL,
+                PRIMARY KEY (UserID)
+            )
+        """)
+
+        # Tables that depend on users/address
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS drivers (
+                DriverID INT NOT NULL,
+                LicensePlate VARCHAR(7) DEFAULT NULL,
+                Status VARCHAR(45) DEFAULT NULL,
+                Rating INT DEFAULT NULL,
+                PRIMARY KEY (DriverID),
+                CONSTRAINT UserIDDriver
+                    FOREIGN KEY (DriverID) REFERENCES users(UserID)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS restaurants (
+                RestaurantID INT NOT NULL,
+                Address INT DEFAULT NULL,
+                PRIMARY KEY (RestaurantID),
+                INDEX Address_idx (Address),
+                CONSTRAINT AddressRestaurant
+                    FOREIGN KEY (Address) REFERENCES address(AddressID),
+                CONSTRAINT UserIDRestaurant
+                    FOREIGN KEY (RestaurantID) REFERENCES users(UserID)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS menuitem (
+                MenuItemID INT NOT NULL AUTO_INCREMENT,
+                Restaurant INT DEFAULT NULL,
+                Cost INT DEFAULT NULL,
+                Name VARCHAR(45) DEFAULT NULL,
+                PRIMARY KEY (MenuItemID),
+                INDEX Menu_idx (Restaurant),
+                CONSTRAINT RestaurantMenuItem
+                    FOREIGN KEY (Restaurant) REFERENCES restaurants(RestaurantID)
+            )
+        """)
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
-def create_restaurant(name: str, username: str, address: str) -> int:
+def create_user(user_type: str, name: str, username: str) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        INSERT INTO restaurants (name, username, address)
-        VALUES (%s, %s, %s)
-        """,
-        (name, username, address),
-    )
+    try:
+        cursor.execute("""
+            INSERT INTO users (Type, Name, Username)
+            VALUES (%s, %s, %s)
+        """, (user_type, name, username))
 
-    conn.commit()
-    restaurant_id = cursor.lastrowid
+        conn.commit()
+        return cursor.lastrowid
 
-    cursor.close()
-    conn.close()
-    return restaurant_id
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
-def update_restaurant_info(restaurant_id: int, name: str, username: str, address: str) -> None:
+def create_address(street: str, city: str, state: str, zip_code: int, country: str) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        UPDATE restaurants
-        SET name = %s, username = %s, address = %s
-        WHERE id = %s
-        """,
-        (name, username, address, restaurant_id),
-    )
+    try:
+        cursor.execute("""
+            INSERT INTO address (Street, City, State, ZIP, Country)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (street, city, state, zip_code, country))
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        conn.commit()
+        return cursor.lastrowid
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
-def add_menu_item(restaurant_id: int, item_name: str, price: float) -> None:
+def create_driver(name: str, username: str, license_plate: str,
+                  status: str = "available", rating: int = 0) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        INSERT INTO menu_items (restaurant_id, item_name, price)
-        VALUES (%s, %s, %s)
-        """,
-        (restaurant_id, item_name, price),
-    )
+    try:
+        cursor.execute("""
+            INSERT INTO users (Type, Name, Username)
+            VALUES (%s, %s, %s)
+        """, ("Driver", name, username))
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        driver_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO drivers (DriverID, LicensePlate, Status, Rating)
+            VALUES (%s, %s, %s, %s)
+        """, (driver_id, license_plate, status, rating))
+
+        conn.commit()
+        return driver_id
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
-def update_menu_item(item_id: int, item_name: str, price: float) -> None:
+def create_restaurant(name: str, username: str, address_id: int) -> int:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        UPDATE menu_items
-        SET item_name = %s, price = %s
-        WHERE id = %s
-        """,
-        (item_name, price, item_id),
-    )
+    try:
+        cursor.execute("""
+            INSERT INTO users (Type, Name, Username)
+            VALUES (%s, %s, %s)
+        """, ("Restaurant", name, username))
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        restaurant_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO restaurants (RestaurantID, Address)
+            VALUES (%s, %s)
+        """, (restaurant_id, address_id))
+
+        conn.commit()
+        return restaurant_id
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_restaurant_info(restaurant_id: int, name: str, username: str, address_id: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE users
+            SET Name = %s, Username = %s
+            WHERE UserID = %s AND Type = 'Restaurant'
+        """, (name, username, restaurant_id))
+
+        cursor.execute("""
+            UPDATE restaurants
+            SET Address = %s
+            WHERE RestaurantID = %s
+        """, (address_id, restaurant_id))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def add_menu_item(restaurant_id: int, item_name: str, price: int) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO menuitem (Restaurant, Cost, Name)
+            VALUES (%s, %s, %s)
+        """, (restaurant_id, price, item_name))
+
+        conn.commit()
+        return cursor.lastrowid
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_menu_item(item_id: int, item_name: str, price: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE menuitem
+            SET Name = %s, Cost = %s
+            WHERE MenuItemID = %s
+        """, (item_name, price, item_id))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def delete_menu_item(item_id: int) -> None:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM menu_items WHERE id = %s", (item_id,))
+    try:
+        cursor.execute("""
+            DELETE FROM menuitem
+            WHERE MenuItemID = %s
+        """, (item_id,))
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def get_menu_items(restaurant_id: int) -> list[tuple]:
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, item_name, price
-        FROM menu_items
-        WHERE restaurant_id = %s
-        ORDER BY id
-        """,
-        (restaurant_id,),
-    )
+    try:
+        cursor.execute("""
+            SELECT MenuItemID, Name, Cost
+            FROM menuitem
+            WHERE Restaurant = %s
+            ORDER BY MenuItemID
+        """, (restaurant_id,))
 
-    rows = cursor.fetchall()
+        return cursor.fetchall()
 
-    cursor.close()
-    conn.close()
-    return rows
+    finally:
+        cursor.close()
+        conn.close()
