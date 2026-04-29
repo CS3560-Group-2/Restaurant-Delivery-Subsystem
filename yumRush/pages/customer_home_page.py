@@ -5,6 +5,8 @@ from tkinter import ttk
 class CustomerHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
+        
+        self.controller = controller;
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -53,9 +55,15 @@ class CustomerHomePage(ttk.Frame):
 
         ttk.Button(
             bottom_bar,
+            text="Edit Account",
+            command=lambda: controller.show_frame("CustomerEditAccountPage")
+        ).pack(side="left")
+
+        ttk.Button(
+            bottom_bar,
             text="Sign Out",
-            command=lambda: controller.show_frame("HomePage")
-        ).pack(side="right")
+            command=self.sign_out
+        ).pack(side="right") 
 
         # Example restaurant cards
         restaurants = [
@@ -97,3 +105,16 @@ class CustomerHomePage(ttk.Frame):
         self.selected_label.config(
             text=f'Selected restaurant: {restaurant["name"]}'
         )
+
+    def on_show(self) -> None:
+        customer = self.controller.current_customer
+        if customer is not None:
+            self.selected_label.config(text=f"Signed in as: {customer['Name']}")
+        else:
+            self.selected_label.config(text="Selected restaurant: None")
+
+    def sign_out(self) -> None:
+        self.controller.current_customer = None
+        self.controller.show_frame("HomePage")
+
+

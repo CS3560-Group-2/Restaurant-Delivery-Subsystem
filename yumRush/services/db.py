@@ -24,6 +24,7 @@ def initialize_database() -> None:
         cursor.execute("DROP TABLE IF EXISTS menu_items")
         cursor.execute("DROP TABLE IF EXISTS menuitem")
         cursor.execute("DROP TABLE IF EXISTS restaurants")
+        cursor.execute("DROP TABLE IF EXISTS customers")
         cursor.execute("DROP TABLE IF EXISTS drivers")
         cursor.execute("DROP TABLE IF EXISTS users")
         cursor.execute("DROP TABLE IF EXISTS address")
@@ -90,6 +91,19 @@ def initialize_database() -> None:
                     FOREIGN KEY (Restaurant) REFERENCES restaurants(RestaurantID)
             )
         """)
+
+        cursor.execute("""
+             CREATE TABLE IF NOT EXISTS customers (
+                CustomerID INT NOT NULL,
+                AddressID INT DEFAULT NULL,
+                PRIMARY KEY (CustomerID),
+                INDEX CustomerAddress_idx (AddressID),
+                CONSTRAINT UserIDCustomer
+                    FOREIGN KEY (CustomerID) REFERENCES users(UserID),
+                CONSTRAINT AddressCustomer
+                    FOREIGN KEY (AddressID) REFERENCES address(AddressID)
+             )
+         """) 
 
         conn.commit()
 
@@ -393,3 +407,122 @@ def update_driver_status(driver_id: int, status: str) -> None:
     finally:
         cursor.close()
         conn.close()
+
+
+def create_customer(name: str, username: str,
+                    street: str, city: str, state: str,
+                    zip_code: int, country: str) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO address (Street, City, State, ZIP, Country)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (street, city, state, zip_code, country))
+        address_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO users (Type, Name, Username)
+            VALUES (%s, %s, %s)
+        """, ("Customer", name, username))
+        customer_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO customers (CustomerID, AddressID)
+            VALUES (%s, %s)
+        """, (customer_id, address_id))
+
+        conn.commit()
+        return customer_id
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_customer_by_username(username: str):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                u.UserID,
+                u.Type,
+                u.Name,
+                u.Username,
+                c.CustomerID,
+                c.AddressID,
+                a.Street,
+                a.City,
+                a.State,
+                a.ZIP,
+                a.Country
+            FROM users u
+            JOIN customers c
+                ON u.UserID = c.CustomerID
+            LEFT JOIN address a
+                ON c.AddressID = a.AddressID
+            WHERE u.Username = %s
+              AND u.Type = 'Customer'
+            LIMIT 1
+        """, (username,))
+
+        return cursor.fetchone()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def update_customer_info(customer_id: int, name: str, username: str,
+                         street: str, city: str, state: str,
+                         zip_code: int, country: str) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE users
+            SET Name = %s, Username = %s
+            WHERE UserID = %s AND Type = 'Customer'
+        """, (name, username, customer_id))
+
+        cursor.execute("""
+            SELECT AddressID
+            FROM customers
+            WHERE CustomerID = %s
+        """, (customer_id,))
+        result = cursor.fetchone()
+
+        if result is None:
+            raise Exception("Customer profile not found.")
+
+        address_id = result[0]
+
+        cursor.execute("""
+            UPDATE address
+            SET Street = %s,
+                City = %s,
+                State = %s,
+                ZIP = %s,
+                Country = %s
+            WHERE AddressID = %s
+        """, (street, city, state, zip_code, country, address_id))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+

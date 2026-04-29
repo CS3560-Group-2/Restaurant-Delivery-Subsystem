@@ -16,6 +16,7 @@ class YumRushApp(ttk.Window):
         self.geometry("800x600")
 
         self.current_driver = None
+        self.current_customer = None
 
         container = ttk.Frame(self, padding=(8, 8, 8, 8))
         container.pack(fill="both", expand=True)
