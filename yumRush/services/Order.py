@@ -17,13 +17,16 @@ class Order:
     handles item management, pricing, and status transitions
     """
 
-    def __init__(self, order_id: int, customer: Customer, restaurant: Restaurant):
+    def __init__(self, order_id: int, customer: Customer, restaurant: Restaurant, driver: Driver, status: str, menu_items: List[MenuItems], order_items: List[OrderItem]):
         self.order_id = order_id
         self.customer = customer
         self.restaurant = restaurant
 
-        # list of items in the order
-        self.items: List[MenuItem] = []
+        # list of items that can be ordered
+        self.menu_items: List[MenuItem] = []
+
+        # list of items in order
+        self.order_items: List[OrderItem] = []
 
         # current order status (placed, preparing, ready, delivering, delivered, cancelled)
         self.status = "placed"
