@@ -11,7 +11,7 @@ con = mysql.connector.connect(
 
 cur = con.cursor()
 
-class Driver(User):
+class Driver(AppUser):
     """
     represents a delivery driver in the system
     handles order pickup, delivery execution, and real-life location updates
