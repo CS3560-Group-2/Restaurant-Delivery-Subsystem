@@ -11,10 +11,10 @@ con = mysql.connector.connect(
 
 cur = con.cursor()
 
-class Customer(User):
+class Customer(AppUser):
   """
   represents a customer placing delivery orders
-  extends User class with functionality such as payment methods and order interaction
+  extends AppUser class with functionality such as payment methods and order interaction
   """
 
   def __init__(self, accountID: int, address: Address):
