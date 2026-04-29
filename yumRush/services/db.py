@@ -313,3 +313,32 @@ def get_menu_items(restaurant_id: int) -> list[tuple]:
     finally:
         cursor.close()
         conn.close()
+
+def get_driver_by_username(username: str):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                u.UserID,
+                u.Type,
+                u.Name,
+                u.Username,
+                d.DriverID,
+                d.LicensePlate,
+                d.Status,
+                d.Rating
+            FROM users u
+            JOIN drivers d
+                ON u.UserID = d.DriverID
+            WHERE u.Username = %s
+              AND u.Type = 'Driver'
+            LIMIT 1
+        """, (username,))
+
+        return cursor.fetchone()
+
+    finally:
+        cursor.close()
+        conn.close()
