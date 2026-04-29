@@ -17,8 +17,8 @@ class Customer(User):
   extends User class with functionality such as payment methods and order interaction
   """
 
-  def __init__(self, accountID: int, address: Address, name: str):
-    super().__init__(accountID, name)
+  def __init__(self, accountID: int, address: Address):
+    super().__init__(accountID)
 
     # customer's delivery address
     self.address = address
