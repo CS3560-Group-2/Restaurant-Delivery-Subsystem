@@ -1,4 +1,4 @@
-from tkinter import ttk
+import ttkbootstrap as ttk
 
 
 class HomePage(ttk.Frame):

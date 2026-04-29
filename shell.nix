@@ -16,6 +16,7 @@ pkgs.mkShell {
     pkgs.cargo
     pkgs.vimPlugins.nvchad
     pkgs.mysql84
+    pkgs.python3Packages.ttkbootstrap
   ];
   
   shellHook = ''

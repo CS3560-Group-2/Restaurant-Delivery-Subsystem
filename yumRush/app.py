@@ -4,23 +4,19 @@ import inspect
 import pkgutil
 import pages
 
-# tkinter setup
-import tkinter as tk
-from tkinter import ttk
+# tkinterbootstrap setup
+import ttkbootstrap as ttk
 
 
-class YumRushApp(tk.Tk):
-    # constructor
+class YumRushApp(ttk.Window):
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(themename="superhero")
 
         self.title("YumRush")
         self.geometry("800x600")
 
-        # store signed-in driver info here
         self.current_driver = None
 
-        # container/Frame attribute definition
         container = ttk.Frame(self, padding=(8, 8, 8, 8))
         container.pack(fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
@@ -28,13 +24,11 @@ class YumRushApp(tk.Tk):
 
         self.frames: dict[str, ttk.Frame] = {}
 
-        # load the frames from /pages
         for PageClass in self.load_pages():
             frame = PageClass(container, self)
             self.frames[PageClass.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # show the home page when app is launched
         self.show_frame("HomePage")
 
     def load_pages(self) -> list[type[ttk.Frame]]:
@@ -52,7 +46,6 @@ class YumRushApp(tk.Tk):
     def show_frame(self, page_name: str) -> None:
         frame = self.frames[page_name]
 
-        # let pages refresh themselves before being shown
         if hasattr(frame, "on_show"):
             frame.on_show()
 
