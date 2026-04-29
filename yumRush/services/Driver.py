@@ -17,8 +17,8 @@ class Driver(User):
     handles order pickup, delivery execution, and real-life location updates
     """
     
-    def __init__(self, accountID: int, licensePlate: str, name: str):
-        super().__init__(accountID, name)
+    def __init__(self, accountID: int, licensePlate: str):
+        super().__init__(accountID)
 
         # vehicle identifier
         self.license_plate = licensePlate
