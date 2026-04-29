@@ -17,7 +17,7 @@ class Driver(User):
     handles order pickup, delivery execution, and real-life location updates
     """
     
-    def __init__(self, accountID: int, licensePlate: str):
+    def __init__(self, accountID: int, licensePlate: str, status: str, rating: int):
         super().__init__(accountID)
 
         # vehicle identifier
@@ -28,6 +28,9 @@ class Driver(User):
 
         # the order currently assigned to the driver (if any)
         self.current_order = None
+
+        # driver's user rating
+        self.rating = 0;
     
     def sign_up(self) -> bool:
        """
