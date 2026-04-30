@@ -32,14 +32,14 @@ class DriverHomePage(ttk.Frame):
 
         # Bottom nav
         bottom_bar = ttk.Frame(self)
-        bottom_bar.grid(row=7, column=0, padx=20, pady=15, sticky="sew")
+        bottom_bar.grid(row=7, column=0, padx=20, pady=15, sticky="ew")
 
         ttk.Button(
             bottom_bar,
             text="DELETE account",
             bootstyle="danger",
-            command=delete_driver_account
-        ).pack(side="left")
+            command=self.delete_account
+        ).pack(side="right")
 
 
         ttk.Button(
@@ -114,3 +114,27 @@ class DriverHomePage(ttk.Frame):
  
         self.controller.current_driver = None
         self.controller.show_frame("HomePage")
+
+    def delete_account(self) -> None:
+        driver = self.controller.current_driver
+
+        if driver is None:
+            messagebox.showerror("Error", "No driver is signed in.")
+            return
+
+        confirmed = messagebox.askyesno(
+            "Delete Account",
+            "Are you sure you want to permanently delete your driver account?"
+        )
+
+        if not confirmed:
+            return
+
+        try:
+            delete_driver_account(driver["DriverID"])
+            self.controller.current_driver = None
+            messagebox.showinfo("Success", "Your driver account has been deleted.")
+            self.controller.show_frame("HomePage")
+
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e))
