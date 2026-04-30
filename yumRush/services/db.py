@@ -525,4 +525,27 @@ def update_customer_info(customer_id: int, name: str, username: str,
         cursor.close()
         conn.close()
 
+def delete_driver_account(driver_id: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
 
+    try:
+        cursor.execute("""
+            DELETE FROM drivers
+            WHERE DriverID = %s
+        """, (driver_id,))
+
+        cursor.execute("""
+            DELETE FROM users
+            WHERE UserID = %s AND Type = 'Driver'
+        """, (driver_id,))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()

@@ -1,5 +1,5 @@
 from tkinter import ttk, messagebox
-from services.db import update_driver_status, update_driver_info
+from services.db import update_driver_status, update_driver_info, delete_driver_account
 
 class DriverHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -30,6 +30,18 @@ class DriverHomePage(ttk.Frame):
         self.status_dropdown.set("Set Status")
         self.status_dropdown.grid(column=0, row=5, padx=10, pady=20)
 
+        # Bottom nav
+        bottom_bar = ttk.Frame(self)
+        bottom_bar.grid(row=7, column=0, padx=20, pady=15, sticky="sew")
+
+        ttk.Button(
+            bottom_bar,
+            text="DELETE account",
+            bootstyle="danger",
+            command=delete_driver_account
+        ).pack(side="left")
+
+
         ttk.Button(
             self,
             text="Status Update",
@@ -48,6 +60,8 @@ class DriverHomePage(ttk.Frame):
             text="Sign out",
             command=self.sign_out
         ).grid(column=1, row=6, padx=10, pady=10)
+
+        
 
     def on_show(self) -> None:
         driver = self.controller.current_driver
