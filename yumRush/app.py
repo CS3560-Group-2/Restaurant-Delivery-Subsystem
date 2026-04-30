@@ -17,6 +17,7 @@ class YumRushApp(ttk.Window):
 
         self.current_driver = None
         self.current_customer = None
+        self.current_restaurant = None
 
         container = ttk.Frame(self, padding=(8, 8, 8, 8))
         container.pack(fill="both", expand=True)
