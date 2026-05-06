@@ -1,7 +1,7 @@
 from tkinter import ttk
 
 
-class MenuInitialPage(ttk.Frame):
+class MenuEditor(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
 

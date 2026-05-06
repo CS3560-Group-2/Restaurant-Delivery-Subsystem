@@ -190,62 +190,6 @@ def create_driver(name: str, username: str, license_plate: str,
         conn.close()
 
 
-def create_restaurant(name: str, username: str, address_id: int) -> int:
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            INSERT INTO users (Type, Name, Username)
-            VALUES (%s, %s, %s)
-        """, ("Restaurant", name, username))
-
-        restaurant_id = cursor.lastrowid
-
-        cursor.execute("""
-            INSERT INTO restaurants (RestaurantID, Address)
-            VALUES (%s, %s)
-        """, (restaurant_id, address_id))
-
-        conn.commit()
-        return restaurant_id
-
-    except Error:
-        conn.rollback()
-        raise
-
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def update_restaurant_info(restaurant_id: int, name: str, username: str, address_id: int) -> None:
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            UPDATE users
-            SET Name = %s, Username = %s
-            WHERE UserID = %s AND Type = 'Restaurant'
-        """, (name, username, restaurant_id))
-
-        cursor.execute("""
-            UPDATE restaurants
-            SET Address = %s
-            WHERE RestaurantID = %s
-        """, (address_id, restaurant_id))
-
-        conn.commit()
-
-    except Error:
-        conn.rollback()
-        raise
-
-    finally:
-        cursor.close()
-        conn.close()
-
 
 def add_menu_item(restaurant_id: int, item_name: str, price: int) -> int:
     conn = get_connection()
@@ -565,6 +509,64 @@ def delete_customer_account(customer_id: int) -> None:
             cursor.execute("DELETE FROM address WHERE AddressID = %s", (result[0],))
 
         conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_restaurant_by_username(username: str):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT
+                u.UserID,
+                u.Type,
+                u.Name,
+                u.Username,
+                r.RestaurantID,
+                r.Address AS AddressID,
+                a.Street,
+                a.City,
+                a.State,
+                a.ZIP,
+                a.Country
+            FROM users u
+            JOIN restaurants r
+                ON u.UserID = r.RestaurantID
+            LEFT JOIN address a
+                ON r.Address = a.AddressID
+            WHERE u.Username = %s
+              AND u.Type = 'Restaurant'
+            LIMIT 1
+        """, (username,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+def create_restaurant(name: str, username: str, address_id: int) -> int:
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO users (Type, Name, Username)
+            VALUES (%s, %s, %s)
+        """, ("Restaurant", name, username))
+
+        restaurant_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO restaurants (RestaurantID, Address)
+            VALUES (%s, %s)
+        """, (restaurant_id, address_id))
+
+        conn.commit()
+        return restaurant_id
 
     except Error:
         conn.rollback()
