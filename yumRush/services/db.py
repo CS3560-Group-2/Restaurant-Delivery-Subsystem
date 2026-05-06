@@ -549,3 +549,27 @@ def delete_driver_account(driver_id: int) -> None:
     finally:
         cursor.close()
         conn.close()
+
+def delete_customer_account(customer_id: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT AddressID FROM customers WHERE CustomerID = %s", (customer_id,))
+        result = cursor.fetchone()
+
+        cursor.execute("DELETE FROM customers WHERE CustomerID = %s", (customer_id,))
+        cursor.execute("DELETE FROM users WHERE UserID = %s AND Type = 'Customer'", (customer_id,))
+
+        if result is not None and result[0] is not None:
+            cursor.execute("DELETE FROM address WHERE AddressID = %s", (result[0],))
+
+        conn.commit()
+
+    except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()

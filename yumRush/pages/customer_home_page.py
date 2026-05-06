@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
-
+from tkinter import ttk, messagebox
+from services.db import delete_customer_account
 
 class CustomerHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
@@ -65,6 +65,12 @@ class CustomerHomePage(ttk.Frame):
             command=self.sign_out
         ).pack(side="right") 
 
+        ttk.Button(
+            bottom_bar,
+            text="Delete Account",
+            command=self.delete_account
+        ).pack(side="left", padx=10)
+
         # Example restaurant cards
         restaurants = [
             {"name": "Burger House", "cuisine": "American", "eta": "20-30 min"},
@@ -91,15 +97,34 @@ class CustomerHomePage(ttk.Frame):
         info_frame = ttk.Frame(card)
         info_frame.pack(side="left", fill="x", expand=True)
 
-        ttk.Label(info_frame, text=restaurant["name"]).pack(anchor="w")
-        ttk.Label(info_frame, text=f'Cuisine: {restaurant["cuisine"]}').pack(anchor="w")
-        ttk.Label(info_frame, text=f'ETA: {restaurant["eta"]}').pack(anchor="w")
+        name_label = ttk.Label(
+            info_frame,
+            text=restaurant["name"],
+            font=("Arial", 14, "bold")
+        )
+        name_label.pack(anchor="w")
 
-        ttk.Button(
+        cuisine_label = ttk.Label(
+            info_frame,
+            text=f'Cuisine: {restaurant["cuisine"]}'
+        )
+        cuisine_label.pack(anchor="w", pady=2)
+
+        eta_label = ttk.Label(
+            info_frame,
+            text=f'ETA: {restaurant["eta"]}'
+        )
+        eta_label.pack(anchor="w", pady=2)
+
+        select_button = ttk.Button(
             card,
-            text="View",
+            text="Select",
             command=lambda r=restaurant: self.select_restaurant(r)
-        ).pack(side="right", padx=10)
+        )
+        select_button.pack(side="right", padx=10) 
+
+
+
 
     def select_restaurant(self, restaurant: dict) -> None:
         self.selected_label.config(
@@ -116,5 +141,29 @@ class CustomerHomePage(ttk.Frame):
     def sign_out(self) -> None:
         self.controller.current_customer = None
         self.controller.show_frame("HomePage")
+
+    def delete_account(self) -> None:
+        customer = self.controller.current_customer
+
+        if customer is None:
+            messagebox.showerror("Error", "No customer is signed in.")
+            return
+
+        confirm = messagebox.askyesno(
+            "Delete Account",
+            "Are you sure you want to permanently delete your customer account?"
+        )
+
+        if not confirm:
+            return
+
+        try:
+            delete_customer_account(customer["CustomerID"])
+            self.controller.current_customer = None
+            messagebox.showinfo("Success", "Customer account deleted successfully.")
+            self.controller.show_frame("HomePage")
+
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e))
 
 
