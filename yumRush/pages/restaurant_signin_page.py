@@ -40,4 +40,5 @@ class RestaurantSignInPage(ttk.Frame):
             return
 
         self.controller.current_restaurant = restaurant
+        self.username_entry.delete(0, tk.END)
         self.controller.show_frame("RestaurantDashboardPage")

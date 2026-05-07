@@ -21,13 +21,13 @@ def initialize_database() -> None:
         #clears tables before creating them
         # Drop in dependency ORDER
 
-        cursor.execute("DROP TABLE IF EXISTS menu_items")
-        cursor.execute("DROP TABLE IF EXISTS menuitem")
-        cursor.execute("DROP TABLE IF EXISTS restaurants")
-        cursor.execute("DROP TABLE IF EXISTS customers")
-        cursor.execute("DROP TABLE IF EXISTS drivers")
-        cursor.execute("DROP TABLE IF EXISTS users")
-        cursor.execute("DROP TABLE IF EXISTS address")
+        #cursor.execute("DROP TABLE IF EXISTS menu_items")
+        #cursor.execute("DROP TABLE IF EXISTS menuitem")
+        #cursor.execute("DROP TABLE IF EXISTS restaurants")
+        #cursor.execute("DROP TABLE IF EXISTS customers")
+        #cursor.execute("DROP TABLE IF EXISTS drivers")
+        #cursor.execute("DROP TABLE IF EXISTS users")
+        #cursor.execute("DROP TABLE IF EXISTS address")
         
 
         # Base tables first
@@ -569,6 +569,109 @@ def create_restaurant(name: str, username: str, address_id: int) -> int:
         return restaurant_id
 
     except Error:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def update_restaurant_info(
+    restaurant_id: int,
+    name: str,
+    username: str,
+    street: str,
+    city: str,
+    state: str,
+    zip_code: int,
+    country: str
+) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT Address
+            FROM restaurants
+            WHERE RestaurantID = %s
+            """,
+            (restaurant_id,)
+        )
+        result = cursor.fetchone()
+
+        if result is None:
+            raise Exception("Restaurant not found.")
+
+        address_id = result[0]
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET Name = %s, Username = %s
+            WHERE UserID = %s AND Type = 'Restaurant'
+            """,
+            (name, username, restaurant_id)
+        )
+
+        cursor.execute(
+            """
+            UPDATE address
+            SET Street = %s, City = %s, State = %s, ZIP = %s, Country = %s
+            WHERE AddressID = %s
+            """,
+            (street, city, state, zip_code, country, address_id)
+        )
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def delete_restaurant_account(restaurant_id: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT Address FROM restaurants WHERE RestaurantID = %s",
+            (restaurant_id,)
+        )
+        result = cursor.fetchone()
+
+        # delete menu items first (avoid FK issues)
+        cursor.execute(
+            "DELETE FROM menuitem WHERE Restaurant = %s",
+            (restaurant_id,)
+        )
+
+        # delete restaurant
+        cursor.execute(
+            "DELETE FROM restaurants WHERE RestaurantID = %s",
+            (restaurant_id,)
+        )
+
+        # delete user account
+        cursor.execute(
+            "DELETE FROM users WHERE UserID = %s AND Type = 'Restaurant'",
+            (restaurant_id,)
+        )
+
+        # delete address if exists
+        if result and result[0]:
+            cursor.execute(
+                "DELETE FROM address WHERE AddressID = %s",
+                (result[0],)
+            )
+
+        conn.commit()
+
+    except Exception:
         conn.rollback()
         raise
 
