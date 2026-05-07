@@ -52,3 +52,5 @@ class YumRushApp(ttk.Window):
             frame.on_show()
 
         frame.tkraise()
+
+    

@@ -7,7 +7,7 @@ class RestaurantSignInPage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
         self.controller = controller
-
+      
         ttk.Label(self, text="Restaurant Sign In").grid(column=0, row=0, columnspan=2, padx=10, pady=10)
 
         ttk.Label(self, text="Username").grid(column=0, row=1, padx=10, pady=5)

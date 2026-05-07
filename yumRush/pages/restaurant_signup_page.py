@@ -8,7 +8,7 @@ class RestaurantSignUpPage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
         self.controller = controller
-
+        
         ttk.Label(self, text="Restaurant Sign Up").grid(column=0, row=0, columnspan=2, padx=10, pady=10)
 
         self.name_entry = self.add_field("Restaurant Name", 1)
@@ -62,6 +62,7 @@ class RestaurantSignUpPage(ttk.Frame):
             self.controller.current_restaurant = restaurant
 
             messagebox.showinfo("Success", f"Restaurant account created. ID: {restaurant_id}")
+            self.controller.current_restaurant = restaurant
             self.controller.show_frame("MenuEditor")
 
         except Error as e:
