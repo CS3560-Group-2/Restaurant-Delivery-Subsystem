@@ -6,7 +6,7 @@ class DriverHomePage(ttk.Frame):
         super().__init__(parent)
         self.controller = controller
 
-        self.status_options = ["unavailable", "On route", "available", "arrived"]
+        self.status_options = ["unavailable","available"]
 
         ttk.Label(self, text="Driver Home Page").grid(column=0, row=0, columnspan=2, padx=10, pady=10)
 

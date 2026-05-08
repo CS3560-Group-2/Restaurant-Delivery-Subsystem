@@ -807,7 +807,7 @@ def create_order(customer_id: int, restaurant_id: int, cart: list[dict]) -> int:
 
         cursor.execute("""
             UPDATE drivers
-            SET Status = 'On Route'
+            SET Status = 'unavailable'
             WHERE DriverID = %s
         """, (driver_id,))
 
