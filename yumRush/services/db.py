@@ -882,7 +882,9 @@ def get_order_details(order_id: int):
                 o.CreatedAt,
                 ruser.Name AS RestaurantName,
                 cuser.Name AS CustomerName,
-                duser.Name AS DriverName
+                duser.Name AS DriverName,
+                pm.CardName AS PaymentCardName,
+                pm.CardNumber AS PaymentCardNumber
             FROM orders o
             JOIN users ruser ON o.RestaurantID = ruser.UserID
             JOIN users cuser ON o.CustomerID = cuser.UserID
