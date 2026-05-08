@@ -43,10 +43,10 @@ class MenuEditor(ttk.Frame):
         self.price_entry = ttk.Entry(form, width=20)
         self.price_entry.grid(column=3, row=0, padx=10, pady=10)
 
-        ttk.Button(form, text="Add Item", command=self.add_item).grid(column=4, row=0, padx=0, pady=10)
-        ttk.Button(form, text="Update Item", command=self.update_item).grid(column=5, row=0, padx=0, pady=10)
-        ttk.Button(form, text="Delete Item", command=self.delete_item).grid(column=6, row=0, padx=0, pady=10)
-        ttk.Button(form, text="Submit", command=self.submit_menu).grid(column=7, row=0, padx=0, pady=10)
+        ttk.Button(form, text="Add Item", command=self.add_item).grid(column=4, row=0, padx=5, pady=10)
+        ttk.Button(form, text="Update Item", command=self.update_item).grid(column=5, row=0, padx=5, pady=10)
+        ttk.Button(form, text="Delete Item", command=self.delete_item).grid(column=6, row=0, padx=5, pady=10)
+        ttk.Button(form, text="Submit", command=self.submit_menu).grid(column=7, row=0, padx=5, pady=10)
 
         #self.refresh_table()
 

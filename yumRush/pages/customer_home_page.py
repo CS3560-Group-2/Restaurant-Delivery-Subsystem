@@ -167,6 +167,12 @@ class CustomerHomePage(ttk.Frame):
             command=lambda r=restaurant: self.select_restaurant(r)
         ).grid(row=0, column=1, rowspan=2, padx=10, sticky="e")
 
+        ttk.Button(
+            card,
+            text="Order",
+            command=lambda r=restaurant: self.start_order(r)
+        ).grid(row=0, column=2, rowspan=2, padx=10, sticky="e")
+
     def select_restaurant(self, restaurant: dict) -> None:
         self.selected_restaurant = restaurant
 
