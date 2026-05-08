@@ -135,6 +135,19 @@ def initialize_database() -> None:
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS payment_methods (
+                PaymentMethodID INT NOT NULL AUTO_INCREMENT,
+                CustomerID INT NOT NULL,
+                CardName VARCHAR(45),
+                CardNumber VARCHAR(20),
+                ExpirationDate VARCHAR(10),
+                CVV VARCHAR(4),
+                PRIMARY KEY (PaymentMethodID),
+                FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID)
+            )
+        """)
+
         conn.commit()
 
     except Error:
@@ -531,7 +544,7 @@ def delete_customer_account(customer_id: int) -> None:
     try:
         cursor.execute("SELECT AddressID FROM customers WHERE CustomerID = %s", (customer_id,))
         result = cursor.fetchone()
-
+        cursor.execute("DELETE FROM payment_methods WHERE CustomerID = %s",(customer_id,))
         cursor.execute("DELETE FROM customers WHERE CustomerID = %s", (customer_id,))
         cursor.execute("DELETE FROM users WHERE UserID = %s AND Type = 'Customer'", (customer_id,))
 
@@ -891,6 +904,67 @@ def get_order_details(order_id: int):
             "order": order,
             "items": items
         }
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def create_payment_method(customer_id, card_name, card_number, expiration_date, cvv):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO payment_methods (
+                CustomerID, CardName, CardNumber, ExpirationDate, CVV
+            )
+            VALUES (%s, %s, %s, %s, %s)
+        """, (customer_id, card_name, card_number, expiration_date, cvv))
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_payment_methods(customer_id):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT *
+            FROM payment_methods
+            WHERE CustomerID = %s
+            ORDER BY PaymentMethodID DESC
+        """, (customer_id,))
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def delete_payment_method(payment_method_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            DELETE FROM payment_methods
+            WHERE PaymentMethodID = %s
+        """, (payment_method_id,))
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
 
     finally:
         cursor.close()

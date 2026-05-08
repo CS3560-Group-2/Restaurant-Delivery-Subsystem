@@ -1,6 +1,6 @@
 from tkinter import messagebox
 import ttkbootstrap as ttk
-from services.db import create_customer
+from services.db import create_customer, get_customer_by_username
 
 
 class CustomerSignUpPage(ttk.Frame):
@@ -38,7 +38,7 @@ class CustomerSignUpPage(ttk.Frame):
         self.country_entry = ttk.Entry(self)
         self.country_entry.grid(column=1, row=7, padx=10, pady=5)
 
-        ttk.Button(self, text="Sign Up", command=self.handle_signup).grid(
+        ttk.Button(self, text="add payment method", command=self.handle_signup).grid(
             column=1, row=8, padx=10, pady=10
         )
 
@@ -61,7 +61,9 @@ class CustomerSignUpPage(ttk.Frame):
 
         try:
             create_customer(name, username, street, city, state, int(zip_code), country)
-            messagebox.showinfo("Success", "Customer account created successfully.")
+            
+            customer = get_customer_by_username(username)
+            self.controller.current_customer = customer
 
             self.name_entry.delete(0, "end")
             self.username_entry.delete(0, "end")
@@ -71,7 +73,7 @@ class CustomerSignUpPage(ttk.Frame):
             self.zip_entry.delete(0, "end")
             self.country_entry.delete(0, "end")
 
-            self.controller.show_frame("HomePage")
+            self.controller.show_frame("CustomerPaymentMethodsPage")
 
         except ValueError:
             messagebox.showerror("Error", "Zip Code must be a number.")

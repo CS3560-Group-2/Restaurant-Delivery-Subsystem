@@ -99,7 +99,7 @@ class CustomerHomePage(ttk.Frame):
             bottom_bar,
             text="Edit Account",
             command=lambda: controller.show_frame("CustomerEditAccountPage")
-        ).pack(side="left")
+        ).pack(side="left", padx = 10)
 
         ttk.Button(
             bottom_bar,
@@ -109,15 +109,21 @@ class CustomerHomePage(ttk.Frame):
 
         ttk.Button(
             bottom_bar,
+            text="Payment Methods",
+            command=lambda: controller.show_frame("CustomerPaymentMethodsPage")
+        ).pack(side="left", padx=10)
+
+        ttk.Button(
+            bottom_bar,
             text="Delete Account",
             command=self.delete_account
-        ).pack(side="left", padx=10)
+        ).pack(side="right", padx=10)
 
         ttk.Button(
             bottom_bar,
             text="Sign Out",
             command=self.sign_out
-        ).pack(side="right")
+        ).pack(side="left", padx=10)
 
     def on_show(self) -> None:
         self.load_restaurants()
