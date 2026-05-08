@@ -678,3 +678,47 @@ def delete_restaurant_account(restaurant_id: int) -> None:
     finally:
         cursor.close()
         conn.close()
+
+def get_all_restaurants():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                u.UserID,
+                u.Name,
+                u.Username,
+                r.RestaurantID,
+                r.Address
+            FROM restaurants r
+            JOIN users u ON r.RestaurantID = u.UserID
+            WHERE u.Type = 'Restaurant'
+            ORDER BY u.Name
+        """)
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_menu_items_by_restaurant(restaurant_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                MenuItemID,
+                Name,
+                Cost
+            FROM menuitem
+            WHERE Restaurant = %s
+            ORDER BY Name
+        """, (restaurant_id,))
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()

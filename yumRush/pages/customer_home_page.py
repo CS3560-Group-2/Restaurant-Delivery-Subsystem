@@ -1,30 +1,47 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from services.db import delete_customer_account
+from services.db import (
+    delete_customer_account,
+    get_all_restaurants,
+    get_menu_items_by_restaurant
+)
+
 
 class CustomerHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
-        
-        self.controller = controller;
+
+        self.controller = controller
+        self.selected_restaurant = None
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        # Title
         title = ttk.Label(self, text="Customer Dashboard")
         title.grid(row=0, column=0, padx=20, pady=20, sticky="n")
 
-        # Main container
         main_frame = ttk.Frame(self)
         main_frame.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
 
         main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(1, weight=1)
         main_frame.grid_rowconfigure(0, weight=1)
 
-        # Canvas + scrollbar setup
-        canvas = tk.Canvas(main_frame, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        # LEFT: restaurant list
+        restaurant_panel = ttk.Frame(main_frame)
+        restaurant_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+        ttk.Label(
+            restaurant_panel,
+            text="Restaurants"
+        ).pack(anchor="w", pady=(0, 10))
+
+        canvas = tk.Canvas(restaurant_panel, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(
+            restaurant_panel,
+            orient="vertical",
+            command=canvas.yview
+        )
 
         self.scrollable_frame = ttk.Frame(canvas)
 
@@ -33,25 +50,50 @@ class CustomerHomePage(ttk.Frame):
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.grid(row=0, column=0, sticky="nsew")
-        scrollbar.grid(row=0, column=1, sticky="ns")
-
-        # Optional mouse wheel scrolling
-        canvas.bind_all(
-            "<MouseWheel>",
-            lambda event: canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        self.canvas_window = canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.bind(
+            "<Configure>",
+            lambda e: canvas.itemconfigure(self.canvas_window, width=e.width)
         )
 
-        # Status / selection label
-        self.selected_label = ttk.Label(self, text="Selected restaurant: None")
-        self.selected_label.grid(row=2, column=0, padx=20, pady=10, sticky="w")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # RIGHT: menu panel
+        menu_panel = ttk.Frame(main_frame, padding=10, relief="ridge")
+        menu_panel.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+
+        ttk.Label(
+            menu_panel,
+            text="Menu"
+        ).pack(anchor="w", pady=(0, 10))
+
+        self.selected_label = ttk.Label(
+            menu_panel,
+            text="Select a restaurant to view its menu."
+        )
+        self.selected_label.pack(anchor="w", pady=(0, 10))
+
+        self.menu_table = ttk.Treeview(
+            menu_panel,
+            columns=("name", "cost"),
+            show="headings",
+            height=15
+        )
+
+        self.menu_table.heading("name", text="Item")
+        self.menu_table.heading("cost", text="Cost")
+
+        self.menu_table.column("name", width=180)
+        self.menu_table.column("cost", width=80)
+
+        self.menu_table.pack(fill="both", expand=True)
 
         # Bottom nav
         bottom_bar = ttk.Frame(self)
-        bottom_bar.grid(row=3, column=0, padx=20, pady=15, sticky="ew")
+        bottom_bar.grid(row=2, column=0, padx=20, pady=15, sticky="ew")
 
         ttk.Button(
             bottom_bar,
@@ -61,85 +103,110 @@ class CustomerHomePage(ttk.Frame):
 
         ttk.Button(
             bottom_bar,
-            text="Sign Out",
-            command=self.sign_out
-        ).pack(side="right") 
-
-        ttk.Button(
-            bottom_bar,
             text="Delete Account",
             command=self.delete_account
         ).pack(side="left", padx=10)
 
-        # Example restaurant cards
-        restaurants = [
-            {"name": "Burger House", "cuisine": "American", "eta": "20-30 min"},
-            {"name": "Pasta Corner", "cuisine": "Italian", "eta": "25-35 min"},
-            {"name": "Sushi World", "cuisine": "Japanese", "eta": "30-40 min"},
-            {"name": "Taco Fiesta", "cuisine": "Mexican", "eta": "15-25 min"},
-            {"name": "Dragon Wok", "cuisine": "Chinese", "eta": "20-30 min"},
-            {"name": "Mediterranean Grill", "cuisine": "Mediterranean", "eta": "25-35 min"},
-            {"name": "Vegan Bowl", "cuisine": "Healthy", "eta": "15-20 min"},
-            {"name": "Pizza Plaza", "cuisine": "Pizza", "eta": "20-30 min"},
-            {"name": "Pho Station", "cuisine": "Vietnamese", "eta": "25-35 min"},
-            {"name": "Curry Spot", "cuisine": "Indian", "eta": "30-40 min"},
-            {"name": "Wing Hub", "cuisine": "Wings", "eta": "20-25 min"},
-            {"name": "Breakfast Barn", "cuisine": "Breakfast", "eta": "15-20 min"},
-        ]
-
-        for restaurant in restaurants:
-            self.create_restaurant_card(restaurant)
-
-    def create_restaurant_card(self, restaurant: dict) -> None:
-        card = ttk.Frame(self.scrollable_frame, padding=12, relief="ridge", borderwidth=1)
-        card.pack(fill="x", padx=10, pady=8)
-
-        info_frame = ttk.Frame(card)
-        info_frame.pack(side="left", fill="x", expand=True)
-
-        name_label = ttk.Label(
-            info_frame,
-            text=restaurant["name"],
-            font=("Arial", 14, "bold")
-        )
-        name_label.pack(anchor="w")
-
-        cuisine_label = ttk.Label(
-            info_frame,
-            text=f'Cuisine: {restaurant["cuisine"]}'
-        )
-        cuisine_label.pack(anchor="w", pady=2)
-
-        eta_label = ttk.Label(
-            info_frame,
-            text=f'ETA: {restaurant["eta"]}'
-        )
-        eta_label.pack(anchor="w", pady=2)
-
-        select_button = ttk.Button(
-            card,
-            text="Select",
-            command=lambda r=restaurant: self.select_restaurant(r)
-        )
-        select_button.pack(side="right", padx=10) 
-
-
-
-
-    def select_restaurant(self, restaurant: dict) -> None:
-        self.selected_label.config(
-            text=f'Selected restaurant: {restaurant["name"]}'
-        )
+        ttk.Button(
+            bottom_bar,
+            text="Sign Out",
+            command=self.sign_out
+        ).pack(side="right")
 
     def on_show(self) -> None:
-        customer = self.controller.current_customer
-        if customer is not None:
-            self.selected_label.config(text=f"Signed in as: {customer['Name']}")
-        else:
-            self.selected_label.config(text="Selected restaurant: None")
+        self.load_restaurants()
+
+    def load_restaurants(self) -> None:
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+
+        try:
+            restaurants = get_all_restaurants()
+
+            if not restaurants:
+                ttk.Label(
+                    self.scrollable_frame,
+                    text="No restaurants available."
+                ).pack(anchor="w", padx=10, pady=10)
+                return
+
+            for restaurant in restaurants:
+                self.create_restaurant_card(restaurant)
+
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e))
+
+    def create_restaurant_card(self, restaurant: dict) -> None:
+        card = ttk.Frame(
+            self.scrollable_frame,
+            padding=12,
+            relief="ridge",
+            borderwidth=1
+        )
+        card.pack(fill="x", expand=True, padx=10, pady=8)
+
+        card.grid_columnconfigure(0, weight=1)
+
+        name_label = ttk.Label(
+            card,
+            text=restaurant["Name"],
+            font=("Arial", 14, "bold")
+        )
+        name_label.grid(row=0, column=0, sticky="w")
+
+        # Placeholder until restaurant ratings are implemented
+        rating_label = ttk.Label(
+            card,
+            text="Rating: ★★★★☆ 4/5"
+        )
+        rating_label.grid(row=1, column=0, sticky="w", pady=2)
+
+        ttk.Button(
+            card,
+            text="View Menu",
+            command=lambda r=restaurant: self.select_restaurant(r)
+        ).grid(row=0, column=1, rowspan=2, padx=10, sticky="e")
+
+    def select_restaurant(self, restaurant: dict) -> None:
+        self.selected_restaurant = restaurant
+
+        self.selected_label.config(
+            text=f'Menu for: {restaurant["Name"]}'
+        )
+
+        self.load_menu_items(restaurant["RestaurantID"])
+
+    def load_menu_items(self, restaurant_id: int) -> None:
+        for row in self.menu_table.get_children():
+            self.menu_table.delete(row)
+
+        try:
+            menu_items = get_menu_items_by_restaurant(restaurant_id)
+
+            if not menu_items:
+                self.menu_table.insert(
+                    "",
+                    "end",
+                    values=("No menu items yet", "")
+                )
+                return
+
+            for item in menu_items:
+                self.menu_table.insert(
+                    "",
+                    "end",
+                    values=(
+                        item["Name"],
+                        f'${item["Cost"]}'
+                    )
+                )
+
+        except Exception as e:
+            messagebox.showerror("Database Error", str(e))
 
     def sign_out(self) -> None:
         self.controller.current_customer = None
+        self.selected_restaurant = None
         self.controller.show_frame("HomePage")
 
     def delete_account(self) -> None:
@@ -160,10 +227,9 @@ class CustomerHomePage(ttk.Frame):
         try:
             delete_customer_account(customer["CustomerID"])
             self.controller.current_customer = None
+            self.selected_restaurant = None
             messagebox.showinfo("Success", "Customer account deleted successfully.")
             self.controller.show_frame("HomePage")
 
         except Exception as e:
             messagebox.showerror("Database Error", str(e))
-
-

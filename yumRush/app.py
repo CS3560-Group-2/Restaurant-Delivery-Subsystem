@@ -13,7 +13,7 @@ class YumRushApp(ttk.Window):
         super().__init__(themename="superhero")
 
         self.title("YumRush")
-        self.geometry("800x600")
+        self.geometry("1200x900")
 
         self.current_driver = None
         self.current_customer = None
