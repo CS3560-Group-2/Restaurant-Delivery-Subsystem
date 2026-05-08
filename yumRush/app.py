@@ -18,6 +18,9 @@ class YumRushApp(ttk.Window):
         self.current_driver = None
         self.current_customer = None
         self.current_restaurant = None
+        self.current_order_restaurant = None
+        self.current_order_id = None
+        self.previous_order_history_page = "CustomerOrderHistoryPage"
 
         container = ttk.Frame(self, padding=(8, 8, 8, 8))
         container.pack(fill="both", expand=True)
@@ -40,10 +43,14 @@ class YumRushApp(ttk.Window):
             module = importlib.import_module(f"pages.{module_name}")
 
             for _, obj in inspect.getmembers(module, inspect.isclass):
-                if issubclass(obj, ttk.Frame) and obj is not ttk.Frame:
+                if (
+                    issubclass(obj, ttk.Frame)
+                    and obj is not ttk.Frame
+                    and not getattr(obj, "abstract_page", False)
+                ):
                     page_classes.append(obj)
 
-        return page_classes
+        return page_classes 
 
     def show_frame(self, page_name: str) -> None:
         frame = self.frames[page_name]

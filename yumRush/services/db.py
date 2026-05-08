@@ -28,6 +28,8 @@ def initialize_database() -> None:
         #cursor.execute("DROP TABLE IF EXISTS drivers")
         #cursor.execute("DROP TABLE IF EXISTS users")
         #cursor.execute("DROP TABLE IF EXISTS address")
+        #cursor.execute("DROP TABLE IF EXISTS order_items")
+        #cursor.execute("DROP TABLE IF EXISTS orders")
         
 
         # Base tables first
@@ -113,6 +115,7 @@ def initialize_database() -> None:
                 DriverID INT DEFAULT NULL,
                 TotalCost INT DEFAULT 0,
                 Status VARCHAR(45) DEFAULT 'Placed',
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (OrderID),
                 FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID),
                 FOREIGN KEY (RestaurantID) REFERENCES restaurants(RestaurantID),
@@ -814,6 +817,80 @@ def create_order(customer_id: int, restaurant_id: int, cart: list[dict]) -> int:
     except Exception:
         conn.rollback()
         raise
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_customer_order_history(customer_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                o.OrderID,
+                o.CustomerID,
+                o.RestaurantID,
+                o.DriverID,
+                o.TotalCost,
+                o.Status,
+                o.CreatedAt,
+                u.Name AS RestaurantName
+            FROM orders o
+            JOIN users u ON o.RestaurantID = u.UserID
+            WHERE o.CustomerID = %s
+            ORDER BY o.CreatedAt DESC
+        """, (customer_id,))
+        return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_order_details(order_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                o.OrderID,
+                o.CustomerID,
+                o.RestaurantID,
+                o.DriverID,
+                o.TotalCost,
+                o.Status,
+                o.CreatedAt,
+                ruser.Name AS RestaurantName,
+                cuser.Name AS CustomerName,
+                duser.Name AS DriverName
+            FROM orders o
+            JOIN users ruser ON o.RestaurantID = ruser.UserID
+            JOIN users cuser ON o.CustomerID = cuser.UserID
+            LEFT JOIN users duser ON o.DriverID = duser.UserID
+            WHERE o.OrderID = %s
+        """, (order_id,))
+
+        order = cursor.fetchone()
+
+        cursor.execute("""
+            SELECT
+                oi.Quantity,
+                mi.Name,
+                mi.Cost
+            FROM order_items oi
+            JOIN menuitem mi ON oi.MenuItemID = mi.MenuItemID
+            WHERE oi.OrderID = %s
+        """, (order_id,))
+
+        items = cursor.fetchall()
+
+        return {
+            "order": order,
+            "items": items
+        }
 
     finally:
         cursor.close()

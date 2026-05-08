@@ -103,6 +103,12 @@ class CustomerHomePage(ttk.Frame):
 
         ttk.Button(
             bottom_bar,
+            text="Order History",
+            command=lambda: controller.show_frame("CustomerOrderHistoryPage")
+        ).pack(side="left", padx=10)
+
+        ttk.Button(
+            bottom_bar,
             text="Delete Account",
             command=self.delete_account
         ).pack(side="left", padx=10)
