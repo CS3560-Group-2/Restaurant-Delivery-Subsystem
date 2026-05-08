@@ -239,3 +239,7 @@ class CustomerHomePage(ttk.Frame):
 
         except Exception as e:
             messagebox.showerror("Database Error", str(e))
+
+    def start_order(self, restaurant: dict) -> None:
+        self.controller.current_order_restaurant = restaurant
+        self.controller.show_frame("CustomerOrderPage")

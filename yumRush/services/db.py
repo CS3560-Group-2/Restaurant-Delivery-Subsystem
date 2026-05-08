@@ -103,7 +103,34 @@ def initialize_database() -> None:
                 CONSTRAINT AddressCustomer
                     FOREIGN KEY (AddressID) REFERENCES address(AddressID)
              )
-         """) 
+         """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS orders (
+                OrderID INT NOT NULL AUTO_INCREMENT,
+                CustomerID INT NOT NULL,
+                RestaurantID INT NOT NULL,
+                DriverID INT DEFAULT NULL,
+                TotalCost INT DEFAULT 0,
+                Status VARCHAR(45) DEFAULT 'Placed',
+                PRIMARY KEY (OrderID),
+                FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID),
+                FOREIGN KEY (RestaurantID) REFERENCES restaurants(RestaurantID),
+                FOREIGN KEY (DriverID) REFERENCES drivers(DriverID)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS order_items (
+                OrderItemID INT NOT NULL AUTO_INCREMENT,
+                OrderID INT NOT NULL,
+                MenuItemID INT NOT NULL,
+                Quantity INT NOT NULL,
+                PRIMARY KEY (OrderItemID),
+                FOREIGN KEY (OrderID) REFERENCES orders(OrderID),
+                FOREIGN KEY (MenuItemID) REFERENCES menuitem(MenuItemID)
+            )
+        """)
 
         conn.commit()
 
@@ -718,6 +745,75 @@ def get_menu_items_by_restaurant(restaurant_id: int):
             ORDER BY Name
         """, (restaurant_id,))
         return cursor.fetchall()
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def create_order(customer_id: int, restaurant_id: int, cart: list[dict]) -> int:
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT DriverID
+            FROM drivers
+            WHERE Status = 'Available'
+            LIMIT 1
+        """)
+        driver = cursor.fetchone()
+
+        if driver is None:
+            raise Exception("No available drivers right now. Please try again later.")
+
+        driver_id = driver["DriverID"]
+        total_cost = sum(item["Cost"] * item["Quantity"] for item in cart)
+
+        cursor.execute("""
+            INSERT INTO orders (
+                CustomerID,
+                RestaurantID,
+                DriverID,
+                TotalCost,
+                Status
+            )
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            customer_id,
+            restaurant_id,
+            driver_id,
+            total_cost,
+            "Placed"
+        ))
+
+        order_id = cursor.lastrowid
+
+        for item in cart:
+            cursor.execute("""
+                INSERT INTO order_items (
+                    OrderID,
+                    MenuItemID,
+                    Quantity
+                )
+                VALUES (%s, %s, %s)
+            """, (
+                order_id,
+                item["MenuItemID"],
+                item["Quantity"]
+            ))
+
+        cursor.execute("""
+            UPDATE drivers
+            SET Status = 'Busy'
+            WHERE DriverID = %s
+        """, (driver_id,))
+
+        conn.commit()
+        return order_id
+
+    except Exception:
+        conn.rollback()
+        raise
 
     finally:
         cursor.close()
