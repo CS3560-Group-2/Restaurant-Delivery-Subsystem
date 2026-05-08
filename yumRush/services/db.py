@@ -113,13 +113,15 @@ def initialize_database() -> None:
                 CustomerID INT NOT NULL,
                 RestaurantID INT NOT NULL,
                 DriverID INT DEFAULT NULL,
+                PaymentMethodID INT DEFAULT NULL,
                 TotalCost INT DEFAULT 0,
                 Status VARCHAR(45) DEFAULT 'Placed',
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (OrderID),
                 FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID),
                 FOREIGN KEY (RestaurantID) REFERENCES restaurants(RestaurantID),
-                FOREIGN KEY (DriverID) REFERENCES drivers(DriverID)
+                FOREIGN KEY (DriverID) REFERENCES drivers(DriverID),
+                FOREIGN KEY (PaymentMethodID) REFERENCES payment_methods(PaymentMethodID)
             )
         """)
 
@@ -766,7 +768,7 @@ def get_menu_items_by_restaurant(restaurant_id: int):
         cursor.close()
         conn.close()
 
-def create_order(customer_id: int, restaurant_id: int, cart: list[dict]) -> int:
+def create_order(customer_id: int, restaurant_id: int, payment_method_id: int, cart: list[dict]) -> int:
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -790,14 +792,16 @@ def create_order(customer_id: int, restaurant_id: int, cart: list[dict]) -> int:
                 CustomerID,
                 RestaurantID,
                 DriverID,
+                PaymentMethodID,
                 TotalCost,
                 Status
             )
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             customer_id,
             restaurant_id,
             driver_id,
+            payment_method_id,
             total_cost,
             "Placed"
         ))
@@ -883,6 +887,7 @@ def get_order_details(order_id: int):
             JOIN users ruser ON o.RestaurantID = ruser.UserID
             JOIN users cuser ON o.CustomerID = cuser.UserID
             LEFT JOIN users duser ON o.DriverID = duser.UserID
+            LEFT JOIN payment_methods pm ON o.PaymentMethodID = pm.PaymentMethodID
             WHERE o.OrderID = %s
         """, (order_id,))
 

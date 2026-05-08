@@ -63,6 +63,13 @@ class CustomerSignUpPage(ttk.Frame):
             create_customer(name, username, street, city, state, int(zip_code), country)
             
             customer = get_customer_by_username(username)
+
+            customer = get_customer_by_username(username)
+
+            if customer is None:
+                messagebox.showerror("Error","Customer was created, but could not be loaded.")
+                return
+
             self.controller.current_customer = customer
 
             self.name_entry.delete(0, "end")

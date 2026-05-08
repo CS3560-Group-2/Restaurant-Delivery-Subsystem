@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from services.db import get_menu_items_by_restaurant, create_order
+from services.db import get_menu_items_by_restaurant, create_order, get_payment_methods
 
 
 class CustomerOrderPage(ttk.Frame):
@@ -68,6 +68,12 @@ class CustomerOrderPage(ttk.Frame):
         self.total_label = ttk.Label(cart_frame, text="Total: $0")
         self.total_label.pack(anchor="e")
 
+        ttk.Label(cart_frame, text="Payment Method").pack(anchor="w", pady=(10, 2))
+
+        self.payment_methods = []
+        self.payment_method_box = ttk.Combobox(cart_frame, state="readonly")
+        self.payment_method_box.pack(fill="x", pady=5)
+
         ttk.Button(
             cart_frame,
             text="Remove Selected",
@@ -98,6 +104,7 @@ class CustomerOrderPage(ttk.Frame):
             return
 
         self.title_label.config(text=f'Order from {self.restaurant["Name"]}')
+        self.load_payment_methods()
         self.load_menu()
         self.refresh_cart()
 
@@ -198,10 +205,19 @@ class CustomerOrderPage(ttk.Frame):
             messagebox.showerror("Error", "Your cart is empty.")
             return
 
+        selected_payment_index = self.payment_method_box.current()
+
+        if selected_payment_index == -1:
+            messagebox.showerror("Error", "Please select a payment method.")
+            return
+
+        payment_method_id = self.payment_methods[selected_payment_index]["PaymentMethodID"]
+
         try:
             order_id = create_order(
                 customer["CustomerID"],
                 self.restaurant["RestaurantID"],
+                payment_method_id,
                 self.cart
             )
 
@@ -216,3 +232,29 @@ class CustomerOrderPage(ttk.Frame):
 
         except Exception as e:
             messagebox.showerror("Database Error", str(e))
+
+    def load_payment_methods(self) -> None:
+        customer = self.controller.current_customer
+
+        self.payment_methods = []
+        self.payment_method_box["values"] = []
+
+        if customer is None:
+            return
+
+        methods = get_payment_methods(customer["CustomerID"])
+        self.payment_methods = methods
+
+        display_values = []
+
+        for method in methods:
+            card_number = str(method.get("CardNumber", ""))
+            last_four = card_number[-4:] if len(card_number) >= 4 else card_number
+            display_values.append(
+                f'{method["PaymentMethodID"]}: {method["CardName"]} ****{last_four}'
+            )
+
+        self.payment_method_box["values"] = display_values
+
+        if display_values:
+            self.payment_method_box.current(0)

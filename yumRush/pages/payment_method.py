@@ -119,7 +119,7 @@ class CustomerPaymentMethodsPage(ttk.Frame):
 
         ttk.Button(
             bottom_bar,
-            text="Back",
+            text="Customer Home Page",
             command=lambda: controller.show_frame("CustomerHomePage")
         ).pack(side="left")
 

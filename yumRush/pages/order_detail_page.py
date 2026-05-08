@@ -64,11 +64,20 @@ class OrderDetailPage(ttk.Frame):
 
             self.title_label.config(text=f"Order #{order['OrderID']} Details")
 
+            card_number = str(order.get("PaymentCardNumber") or "")
+            last_four = card_number[-4:] if len(card_number) >= 4 else ""
+
+            payment_text = "Not selected"
+
+            if order.get("PaymentCardName"):
+                payment_text = f'{order["PaymentCardName"]} ****{last_four}'
+
             self.info_label.config(
                 text=(
                     f"Restaurant: {order['RestaurantName']}\n"
                     f"Customer: {order['CustomerName']}\n"
                     f"Driver: {order.get('DriverName') or 'Not assigned'}\n"
+                    f"Payment: {payment_text}\n"
                     f"Date: {order['CreatedAt']}\n"
                     f"Status: {order['Status']}\n"
                     f"Total: ${order['TotalCost']}"
