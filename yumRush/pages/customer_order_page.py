@@ -251,7 +251,7 @@ class CustomerOrderPage(ttk.Frame):
             card_number = str(method.get("CardNumber", ""))
             last_four = card_number[-4:] if len(card_number) >= 4 else card_number
             display_values.append(
-                f'{method["PaymentMethodID"]}: {method["CardName"]} ****{last_four}'
+                f'{method["CardName"]} ****{last_four}'
             )
 
         self.payment_method_box["values"] = display_values
