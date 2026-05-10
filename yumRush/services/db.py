@@ -150,6 +150,42 @@ def initialize_database() -> None:
             )
         """)
 
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS restaurant_reviews (
+                ReviewID INT NOT NULL AUTO_INCREMENT,
+                OrderID INT NOT NULL,
+                CustomerID INT NOT NULL,
+                RestaurantID INT NOT NULL,
+                Rating INT NOT NULL,
+                ReviewText VARCHAR(500),
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (ReviewID),
+                FOREIGN KEY (OrderID) REFERENCES orders(OrderID),
+                FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID),
+                FOREIGN KEY (RestaurantID) REFERENCES restaurants(RestaurantID),
+                CONSTRAINT unique_restaurant_review_per_order UNIQUE (OrderID, CustomerID, RestaurantID),
+                CONSTRAINT restaurant_rating_range CHECK (Rating BETWEEN 1 AND 5)
+            )
+        """)
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS driver_reviews (
+                ReviewID INT NOT NULL AUTO_INCREMENT,
+                OrderID INT NOT NULL,
+                CustomerID INT NOT NULL,
+                DriverID INT NOT NULL,
+                Rating INT NOT NULL,
+                ReviewText VARCHAR(500),
+                CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (ReviewID),
+                FOREIGN KEY (OrderID) REFERENCES orders(OrderID),
+                FOREIGN KEY (CustomerID) REFERENCES customers(CustomerID),
+                FOREIGN KEY (DriverID) REFERENCES drivers(DriverID),
+                CONSTRAINT unique_driver_review_per_order UNIQUE (OrderID, CustomerID, DriverID),
+                CONSTRAINT driver_rating_range CHECK (Rating BETWEEN 1 AND 5)
+            )
+        """)
+
         conn.commit()
 
     except Error:
@@ -1033,6 +1069,47 @@ def mark_order_delivered(order_id: int, driver_id: int) -> None:
             SET Status = 'available'
             WHERE DriverID = %s
         """, (driver_id,))
+
+        conn.commit()
+    except Error:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+def create_restaurant_review(order_id: int, customer_id: int, restaurant_id: int, rating: int, review_text: str = "") -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO restaurant_reviews (
+                OrderID, CustomerID, RestaurantID, Rating, ReviewText
+            )
+            VALUES (%s, %s, %s, %s, %s)
+        """, (order_id, customer_id, restaurant_id, rating, review_text))
+
+        conn.commit()
+    except Error:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def create_driver_review(order_id: int, customer_id: int, driver_id: int, rating: int, review_text: str = "") -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO driver_reviews (
+                OrderID, CustomerID, DriverID, Rating, ReviewText
+            )
+            VALUES (%s, %s, %s, %s, %s)
+        """, (order_id, customer_id, driver_id, rating, review_text))
 
         conn.commit()
     except Error:
