@@ -1,7 +1,7 @@
 from tkinter import ttk, messagebox
 from services.db import update_driver_status, update_driver_info, delete_driver_account
 
-class DriverHomePage(ttk.Frame):
+class OldDriverHomePage(ttk.Frame):
     def __init__(self, parent, controller) -> None:
         super().__init__(parent)
         self.controller = controller

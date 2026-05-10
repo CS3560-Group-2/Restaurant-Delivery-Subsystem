@@ -976,3 +976,68 @@ def delete_payment_method(payment_method_id):
     finally:
         cursor.close()
         conn.close()
+
+def get_assigned_order_for_driver(driver_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                o.OrderID,
+                o.Status,
+                ru.Name AS RestaurantName,
+                ra.Street AS RestaurantStreet,
+                ra.City AS RestaurantCity,
+                ra.State AS RestaurantState,
+                ra.ZIP AS RestaurantZIP,
+                ra.Country AS RestaurantCountry,
+                cu.Name AS CustomerName,
+                ca.Street AS CustomerStreet,
+                ca.City AS CustomerCity,
+                ca.State AS CustomerState,
+                ca.ZIP AS CustomerZIP,
+                ca.Country AS CustomerCountry
+            FROM orders o
+            JOIN restaurants r ON o.RestaurantID = r.RestaurantID
+            JOIN users ru ON r.RestaurantID = ru.UserID
+            JOIN address ra ON r.Address = ra.AddressID
+            JOIN customers c ON o.CustomerID = c.CustomerID
+            JOIN users cu ON c.CustomerID = cu.UserID
+            JOIN address ca ON c.AddressID = ca.AddressID
+            WHERE o.DriverID = %s
+              AND o.Status != 'Delivered'
+            ORDER BY o.OrderID DESC
+            LIMIT 1
+        """, (driver_id,))
+
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def mark_order_delivered(order_id: int, driver_id: int) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE orders
+            SET Status = 'Delivered'
+            WHERE OrderID = %s AND DriverID = %s
+        """, (order_id, driver_id))
+
+        cursor.execute("""
+            UPDATE drivers
+            SET Status = 'available'
+            WHERE DriverID = %s
+        """, (driver_id,))
+
+        conn.commit()
+    except Error:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
+        conn.close()
